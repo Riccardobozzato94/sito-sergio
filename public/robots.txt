@@ -1,0 +1,10 @@
+# Panificio Da Sergio — robots.txt
+User-agent: *
+Allow: /
+
+# Block build artifacts and private paths
+Disallow: /src/
+Disallow: /.env
+
+# Sitemap
+Sitemap: https://www.panificiodasergio.it/sitemap.xml

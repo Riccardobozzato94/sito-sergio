@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <!-- Background -->
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a1410"/>
+      <stop offset="100%" style="stop-color:#0e0e0e"/>
+    </linearGradient>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#d4a574"/>
+      <stop offset="50%" style="stop-color:#e2be96"/>
+      <stop offset="100%" style="stop-color:#d4a574"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bgGrad)"/>
+  
+  <!-- Decorative top line -->
+  <rect x="100" y="60" width="1000" height="1" fill="url(#goldGrad)" opacity="0.3"/>
+  
+  <!-- Wheat icon (decorative) -->
+  <g transform="translate(100, 120)" opacity="0.15">
+    <path d="M30 80 Q15 50 30 20 Q45 50 30 80Z" fill="#d4a574" transform="rotate(-15, 30, 50)"/>
+    <path d="M30 80 Q15 50 30 20 Q45 50 30 80Z" fill="#d4a574" transform="rotate(15, 30, 50)"/>
+    <line x1="30" y1="80" x2="30" y2="120" stroke="#d4a574" stroke-width="2"/>
+  </g>
+  
+  <!-- Main content centered -->
+  <text x="600" y="200" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="28" fill="#d4a574" letter-spacing="8" font-weight="400">TRADIZIONE CON PASSIONE</text>
+  
+  <!-- Title -->
+  <text x="600" y="290" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="72" fill="#f0ece6" letter-spacing="4" font-weight="700">PANIFICIO</text>
+  <text x="600" y="360" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="56" fill="#f0ece6" font-style="italic" letter-spacing="2">DA SERGIO</text>
+  
+  <!-- Ornamental line -->
+  <line x1="500" y1="390" x2="700" y2="390" stroke="#d4a574" stroke-width="1" opacity="0.6"/>
+  <circle cx="600" cy="390" r="3" fill="#d4a574"/>
+  
+  <!-- Subtitle -->
+  <text x="600" y="430" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="26" fill="#f0ece6">Pane Artigianale e Dolci Tradizionali</text>
+  
+  <!-- Since -->
+  <text x="600" y="480" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="22" fill="#d4a574">Dal 1977 — Chioggia</text>
+  
+  <!-- Bottom line -->
+  <rect x="100" y="540" width="1000" height="1" fill="url(#goldGrad)" opacity="0.3"/>
+  
+  <!-- Website -->
+  <text x="600" y="580" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="18" fill="#9a9590" letter-spacing="3">www.panificiodasergio.it</text>
+</svg>

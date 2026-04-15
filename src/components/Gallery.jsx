@@ -8,12 +8,15 @@ export default function Gallery() {
   const [currentIndex, setCurrentIndex] = useState(0);
 
   const images = [
-    { src: '/images/gallery-1.jpg', alt: 'Impasto artigianale — Panificio Da Sergio Chioggia' },
-    { src: '/images/gallery-2.jpg', alt: 'Forno tradizionale — Panificio artigianale Chioggia' },
-    { src: '/images/gallery-3.jpg', alt: 'Pane appena sfornato — Pane fresco Chioggia' },
-    { src: '/images/gallery-4.jpg', alt: 'Dettaglio prodotto artigianale — Dolci tipici veneziani' },
-    { src: '/images/gallery-5.jpg', alt: 'Preparazione impasto tradizionale — Panificio Da Sergio' },
-    { src: '/images/gallery-6.jpg', alt: 'Interno del Panificio Da Sergio — Chioggia' },
+    { src: '/images/gallery-1.jpg', alt: 'Prodotti artigianali — Panificio Da Sergio Chioggia' },
+    { src: '/images/gallery-2.jpg', alt: 'Pane fresco sfornato — Panificio artigianale Chioggia' },
+    { src: '/images/gallery-3.jpg', alt: 'Dolci tipici veneziani — Panificio Da Sergio' },
+    { src: '/images/gallery-4.jpg', alt: 'Forno tradizionale — Panificio artigianale Chioggia' },
+    { src: '/images/gallery-5.jpg', alt: 'Impasto artigianale — Pane tradizionale Chioggia' },
+    { src: '/images/gallery-6.jpg', alt: 'Biscotti e dolci — Panificio Da Sergio Chioggia' },
+    { src: '/images/gallery-7.jpg', alt: 'Specialità del Panificio Da Sergio — Chioggia' },
+    { src: '/images/gallery-8.jpg', alt: 'Lavorazione artigianale — Panificio Da Sergio' },
+    { src: '/images/gallery-9.jpg', alt: 'Interno del Panificio Da Sergio — Chioggia' },
   ];
 
   const openLightbox = (index) => {

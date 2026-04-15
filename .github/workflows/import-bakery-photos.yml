@@ -51,8 +51,7 @@ jobs:
         run: |
           mkdir -p /tmp/drive-raw
           gdown --folder "${{ github.event.inputs.drive_folder_id }}" \
-                -O /tmp/drive-raw \
-                --remaining-ok
+                -O /tmp/drive-raw
           echo "📂 File scaricati:"
           ls -lh /tmp/drive-raw/ | grep -iE '\.(jpg|jpeg|png)$'
 

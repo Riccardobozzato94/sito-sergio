@@ -1,0 +1,215 @@
+name: 📸 Import Bakery Photos from Google Drive
+
+on:
+  workflow_dispatch:
+    inputs:
+      drive_folder_id:
+        description: "Google Drive Folder ID"
+        required: true
+        default: "1psQbAAzAGNT2QnJizBw0KNnt7qsUrXg2"
+      hero_photo_index:
+        description: "Numero della foto per l'hero (1 = prima, 2 = seconda, ecc.)"
+        required: true
+        default: "1"
+      storefront_photo_index:
+        description: "Numero della foto per la sezione 'Chi Siamo'"
+        required: true
+        default: "2"
+      gallery_count:
+        description: "Numero di foto in galleria (max 9)"
+        required: true
+        default: "9"
+
+jobs:
+  import-photos:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      # ─────────────────────────────────────────────
+      # 1. Checkout branch di sviluppo
+      # ─────────────────────────────────────────────
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          ref: claude/add-bakery-photos-7JZKN
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      # ─────────────────────────────────────────────
+      # 2. Installa dipendenze
+      # ─────────────────────────────────────────────
+      - name: Install gdown & ImageMagick
+        run: |
+          pip install gdown --quiet
+          sudo apt-get install -y imagemagick --quiet
+
+      # ─────────────────────────────────────────────
+      # 3. Download cartella Google Drive
+      # ─────────────────────────────────────────────
+      - name: Download photos from Google Drive
+        run: |
+          mkdir -p /tmp/drive-raw
+          gdown --folder "${{ github.event.inputs.drive_folder_id }}" \
+                -O /tmp/drive-raw \
+                --remaining-ok
+          echo "📂 File scaricati:"
+          ls -lh /tmp/drive-raw/ | grep -iE '\.(jpg|jpeg|png)$'
+
+      # ─────────────────────────────────────────────
+      # 4. Processing foto con ImageMagick
+      # ─────────────────────────────────────────────
+      - name: Process & resize photos
+        run: |
+          set -e
+          DEST="public/images"
+
+          # Raccogli tutte le immagini scaricate, ordinate per nome
+          mapfile -t PHOTOS < <(find /tmp/drive-raw -maxdepth 2 \
+            -iregex '.*\.\(jpg\|jpeg\|png\)$' | sort)
+
+          TOTAL=${#PHOTOS[@]}
+          echo "📸 Foto trovate: $TOTAL"
+
+          if [ "$TOTAL" -eq 0 ]; then
+            echo "❌ Nessuna foto trovata nel Drive!"
+            exit 1
+          fi
+
+          HERO_IDX=$(( ${{ github.event.inputs.hero_photo_index }} - 1 ))
+          STORE_IDX=$(( ${{ github.event.inputs.storefront_photo_index }} - 1 ))
+          GALLERY_COUNT=${{ github.event.inputs.gallery_count }}
+
+          # Clamp indices
+          [ "$HERO_IDX" -ge "$TOTAL" ]  && HERO_IDX=0
+          [ "$STORE_IDX" -ge "$TOTAL" ] && STORE_IDX=$(( TOTAL > 1 ? 1 : 0 ))
+
+          echo "→ Hero:      foto #$(( HERO_IDX + 1 ))  → ${PHOTOS[$HERO_IDX]}"
+          echo "→ Storefront: foto #$(( STORE_IDX + 1 )) → ${PHOTOS[$STORE_IDX]}"
+
+          # ── Hero: 1920×1080 landscape ──────────────────────────────────
+          convert "${PHOTOS[$HERO_IDX]}" \
+            -resize 1920x1080^ \
+            -gravity Center \
+            -extent 1920x1080 \
+            -quality 85 \
+            -strip \
+            "$DEST/hero-bg.jpg"
+          echo "✅ hero-bg.jpg"
+
+          # ── Storefront / Chi Siamo: 800×600 (4:3) ─────────────────────
+          convert "${PHOTOS[$STORE_IDX]}" \
+            -resize 800x600^ \
+            -gravity Center \
+            -extent 800x600 \
+            -quality 85 \
+            -strip \
+            "$DEST/storefront.jpg"
+          echo "✅ storefront.jpg"
+
+          # ── Gallery: tutte le foto fino a GALLERY_COUNT ────────────────
+          # La prima foto di galleria (featured 2×2) è più grande
+          GALLERY_N=0
+          for PHOTO in "${PHOTOS[@]}"; do
+            if [ "$GALLERY_N" -ge "$GALLERY_COUNT" ]; then
+              break
+            fi
+            GALLERY_N=$(( GALLERY_N + 1 ))
+            OUT_FILE="$DEST/gallery-${GALLERY_N}.jpg"
+
+            if [ "$GALLERY_N" -eq 1 ]; then
+              # Featured (occupa 2×2 nella bento grid): alta risoluzione
+              convert "$PHOTO" \
+                -resize 1200x900^ \
+                -gravity Center \
+                -extent 1200x900 \
+                -quality 85 \
+                -strip \
+                "$OUT_FILE"
+            else
+              # Foto standard galleria
+              convert "$PHOTO" \
+                -resize 800x600^ \
+                -gravity Center \
+                -extent 800x600 \
+                -quality 82 \
+                -strip \
+                "$OUT_FILE"
+            fi
+            echo "✅ gallery-${GALLERY_N}.jpg  ← $(basename "$PHOTO")"
+          done
+
+          echo ""
+          echo "📊 Riepilogo dimensioni:"
+          ls -lh "$DEST"/hero-bg.jpg "$DEST"/storefront.jpg "$DEST"/gallery-*.jpg 2>/dev/null
+
+          # Salva il numero reale di foto di galleria per lo step successivo
+          echo "ACTUAL_GALLERY_COUNT=$GALLERY_N" >> "$GITHUB_ENV"
+          echo "Foto in galleria: $GALLERY_N"
+
+      # ─────────────────────────────────────────────
+      # 5. Aggiorna Gallery.jsx
+      # ─────────────────────────────────────────────
+      - name: Update Gallery.jsx
+        run: |
+          # Sostituisce il blocco `const images = [...]` in Gallery.jsx
+          python3 - <<'PYEOF'
+          import re, os
+
+          with open('src/components/Gallery.jsx', 'r') as f:
+              content = f.read()
+
+          n = int(os.environ['ACTUAL_GALLERY_COUNT'])
+          alts = [
+              "Prodotti artigianali — Panificio Da Sergio Chioggia",
+              "Pane fresco sfornato — Panificio artigianale Chioggia",
+              "Dolci tipici veneziani — Panificio Da Sergio",
+              "Forno tradizionale — Panificio artigianale Chioggia",
+              "Impasto artigianale — Pane tradizionale Chioggia",
+              "Biscotti e dolci — Panificio Da Sergio Chioggia",
+              "Specialità del Panificio Da Sergio — Chioggia",
+              "Lavorazione artigianale — Panificio Da Sergio",
+              "Interno del Panificio Da Sergio — Chioggia",
+          ]
+
+          entries = []
+          for i in range(1, n + 1):
+              alt = alts[i - 1] if i - 1 < len(alts) else f"Panificio Da Sergio — foto {i}"
+              entries.append(f"    {{ src: '/images/gallery-{i}.jpg', alt: '{alt}' }},")
+
+          new_array = "  const images = [\n" + "\n".join(entries) + "\n  ];"
+
+          pattern = r'  const images = \[[\s\S]*?\];'
+          new_content = re.sub(pattern, new_array, content)
+
+          with open('src/components/Gallery.jsx', 'w') as f:
+              f.write(new_content)
+
+          print(f"✅ Gallery.jsx aggiornato con {n} immagini")
+          PYEOF
+
+      # ─────────────────────────────────────────────
+      # 6. Commit e push
+      # ─────────────────────────────────────────────
+      - name: Commit photos and code changes
+        run: |
+          git config user.name "GitHub Actions Bot"
+          git config user.email "actions@github.com"
+
+          git add public/images/hero-bg.jpg \
+                  public/images/storefront.jpg \
+                  public/images/gallery-*.jpg \
+                  src/components/Gallery.jsx
+
+          git status --short
+
+          git commit -m "feat: add real bakery photos from Google Drive
+
+          - Replace hero-bg.jpg placeholder (was 124B, now real photo)
+          - Replace storefront.jpg placeholder (was 124B, now real photo)
+          - Add ${{ env.ACTUAL_GALLERY_COUNT }} processed gallery photos (4:3, optimized)
+          - All images: ImageMagick center-crop, EXIF stripped, web-optimized
+          - Update Gallery.jsx: ${{ github.event.inputs.gallery_count }} photos in bento grid"
+
+          git push origin claude/add-bakery-photos-7JZKN
+          echo "🚀 Foto committate e pushate!"

@@ -7,27 +7,27 @@ export default function Reviews() {
   const reviews = getSortedReviews(6);
 
   return (
-    <section className="py-16 sm:py-20 lg:py-24 bg-[#111111]">
+    <section className="py-16 sm:py-20 lg:py-24 bg-bg-elevated">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
         {/* ═══ Section Title ═══ */}
         <div className="text-center mb-10 sm:mb-12">
-          <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl text-primary tracking-wide">
+          <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl text-primary tracking-tight">
             {t.reviews_title}
           </h2>
-          <p className="text-white/60 mt-3 max-w-md mx-auto text-sm sm:text-base">
+          <p className="text-text-muted mt-3 max-w-md mx-auto text-sm sm:text-base">
             {t.reviews_subtitle}
           </p>
         </div>
 
-        {/* ═══ Single Platform Links (one each) ═══ */}
+        {/* ═══ Platform Links ═══ */}
         <div className="flex flex-wrap items-center justify-center gap-4 mb-10 sm:mb-14">
           {/* TripAdvisor */}
           <a
             href={REVIEW_LINKS.tripadvisor}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2.5 bg-bg-card/80 border border-[#2a2725] rounded-xl px-5 py-3 hover:border-[#34e0a1]/40 transition-all duration-300 group"
+            className="inline-flex items-center gap-2.5 bg-bg-card border border-border rounded-xl px-5 py-3 hover:border-[#34e0a1]/40 transition-all duration-300 group"
           >
             <span className="text-[#34e0a1] font-bold text-xs uppercase tracking-wider">TripAdvisor</span>
             <div className="flex gap-0.5">
@@ -36,7 +36,7 @@ export default function Reviews() {
               ))}
               <Star size={12} className="text-[#34e0a1] fill-[#34e0a1] opacity-40" />
             </div>
-            <ExternalLink size={12} className="text-white/30 group-hover:text-[#34e0a1] transition-colors" />
+            <ExternalLink size={12} className="text-text-dim group-hover:text-[#34e0a1] transition-colors" />
           </a>
 
           {/* Google */}
@@ -44,7 +44,7 @@ export default function Reviews() {
             href={REVIEW_LINKS.google}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2.5 bg-bg-card/80 border border-[#2a2725] rounded-xl px-5 py-3 hover:border-[#4285f4]/40 transition-all duration-300 group"
+            className="inline-flex items-center gap-2.5 bg-bg-card border border-border rounded-xl px-5 py-3 hover:border-[#4285f4]/40 transition-all duration-300 group"
           >
             <span className="text-[#4285f4] font-bold text-xs uppercase tracking-wider">Google</span>
             <div className="flex gap-0.5">
@@ -52,7 +52,7 @@ export default function Reviews() {
                 <Star key={s} size={12} className="text-[#4285f4] fill-[#4285f4]" />
               ))}
             </div>
-            <ExternalLink size={12} className="text-white/30 group-hover:text-[#4285f4] transition-colors" />
+            <ExternalLink size={12} className="text-text-dim group-hover:text-[#4285f4] transition-colors" />
           </a>
         </div>
 
@@ -61,18 +61,18 @@ export default function Reviews() {
           {reviews.map((review, i) => (
             <div
               key={review.id}
-              className="review-card bg-bg-card rounded-2xl p-5 sm:p-6 border border-[#2a2725] animate-fade-in-up"
+              className="review-card rounded-2xl p-5 sm:p-6 animate-fade-in-up"
               style={{ animationDelay: `${i * 0.1}s` }}
             >
               {/* Header: Author + Rating */}
               <div className="flex items-start justify-between mb-3">
                 <div className="min-w-0">
-                  <h4 className="text-white font-semibold text-base truncate">{review.author}</h4>
+                  <h4 className="text-text font-semibold text-base truncate">{review.author}</h4>
                   <div className="flex items-center gap-2 mt-1">
                     <span className={review.source === 'Google' ? 'badge-google' : 'badge-tripadvisor'}>
                       {review.source}
                     </span>
-                    <span className="text-white/50 text-xs">{review.date}</span>
+                    <span className="text-text-dim text-xs">{review.date}</span>
                   </div>
                 </div>
                 <div className="flex gap-0.5 shrink-0 ml-3">
@@ -83,7 +83,7 @@ export default function Reviews() {
                       className={
                         s <= review.rating
                           ? 'text-primary fill-primary'
-                          : 'text-[#2a2725]'
+                          : 'text-border'
                       }
                     />
                   ))}
@@ -99,20 +99,20 @@ export default function Reviews() {
               </div>
 
               {/* Full text */}
-              <p className="text-white/65 text-sm leading-relaxed line-clamp-3">
+              <p className="text-text-muted text-sm leading-relaxed line-clamp-3">
                 {review.text}
               </p>
             </div>
           ))}
         </div>
 
-        {/* ═══ Single CTA to external reviews ═══ */}
+        {/* ═══ CTA to external reviews ═══ */}
         <div className="flex flex-wrap justify-center gap-3 mt-10 sm:mt-12">
           <a
             href={REVIEW_LINKS.tripadvisor}
             target="_blank"
             rel="noopener noreferrer"
-            className="btn-outline inline-flex items-center gap-2 border border-[#2a2725] text-white/60 px-6 py-3 rounded-xl text-sm hover:border-primary/40 hover:text-primary transition-all duration-300"
+            className="btn-outline inline-flex items-center gap-2 border border-border text-text-dim px-6 py-3 rounded-xl text-sm hover:border-primary/40 hover:text-primary transition-all duration-300"
           >
             {t.reviews_see_all_ta}
             <ExternalLink size={14} />
@@ -121,7 +121,7 @@ export default function Reviews() {
             href={REVIEW_LINKS.google}
             target="_blank"
             rel="noopener noreferrer"
-            className="btn-outline inline-flex items-center gap-2 border border-[#2a2725] text-white/60 px-6 py-3 rounded-xl text-sm hover:border-primary/40 hover:text-primary transition-all duration-300"
+            className="btn-outline inline-flex items-center gap-2 border border-border text-text-dim px-6 py-3 rounded-xl text-sm hover:border-primary/40 hover:text-primary transition-all duration-300"
           >
             {t.reviews_see_all_google}
             <ExternalLink size={14} />

@@ -4,6 +4,7 @@ node_modules/
 # Build outputs
 dist/
 .next/
+.cache/
 
 # Environment
 .env
@@ -21,7 +22,5 @@ Thumbs.db
 # Playwright MCP output
 .playwright-mcp/
 
-# Generated images
-*.jpeg
-*.png
-!*.svg
+# Supabase generated types (auto-regenerated)
+src/lib/supabase/database.types.ts

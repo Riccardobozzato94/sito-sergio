@@ -23,15 +23,15 @@ export default function HowToOrder() {
   ];
 
   return (
-    <section className="py-16 sm:py-20 lg:py-24 bg-[#0a0a0a] border-y border-[#2a2725]/30">
+    <section className="py-16 sm:py-20 lg:py-24 bg-bg-subtle border-y border-white/[0.04]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
         {/* ═══ Section Title ═══ */}
         <div className="text-center mb-12 sm:mb-16">
-          <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl text-primary tracking-wide">
+          <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl text-primary tracking-tight">
             {t.howto_title}
           </h2>
-          <p className="text-white/65 mt-4 max-w-lg mx-auto text-sm sm:text-base">
+          <p className="text-text-muted mt-4 max-w-lg mx-auto text-sm sm:text-base">
             {t.howto_subtitle}
           </p>
         </div>
@@ -51,21 +51,16 @@ export default function HowToOrder() {
               </span>
 
               {/* Title */}
-              <h3 className="font-heading text-xl sm:text-2xl text-white mb-3">
+              <h3 className="font-heading text-xl sm:text-2xl text-text mb-3">
                 {step.title}
               </h3>
 
               {/* Description */}
-              <p className="text-white/65 text-sm sm:text-base leading-relaxed max-w-xs mx-auto">
+              <p className="text-text-muted text-sm sm:text-base leading-relaxed max-w-xs mx-auto">
                 {step.desc}
               </p>
             </div>
           ))}
-        </div>
-
-        {/* ═══ Connector Lines (desktop) ═══ */}
-        <div className="hidden md:block">
-          {/* These are decorative SVG lines between steps */}
         </div>
       </div>
     </section>

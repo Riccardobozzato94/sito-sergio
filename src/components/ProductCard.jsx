@@ -15,14 +15,14 @@ function formatPrice(price, unit) {
 
 // EU 14 major allergens — icons and short labels
 const ALLERGEN_LABELS = {
-  glutine:       { label: 'Glutine',  color: 'bg-amber-500/15 text-amber-400  border-amber-500/20' },
-  lattosio:      { label: 'Latte',    color: 'bg-blue-500/15  text-blue-400   border-blue-500/20'  },
-  uova:          { label: 'Uova',     color: 'bg-yellow-500/15 text-yellow-400 border-yellow-500/20' },
-  frutta_guscio: { label: 'Frutta s.guscio', color: 'bg-orange-500/15 text-orange-400 border-orange-500/20' },
-  arachidi:      { label: 'Arachidi', color: 'bg-red-500/15   text-red-400    border-red-500/20'   },
-  sesamo:        { label: 'Sesamo',   color: 'bg-lime-500/15  text-lime-400   border-lime-500/20'  },
-  soia:          { label: 'Soia',     color: 'bg-green-500/15 text-green-400  border-green-500/20' },
-  sedano:        { label: 'Sedano',   color: 'bg-teal-500/15  text-teal-400   border-teal-500/20'  },
+  glutine:       { label: 'Glutine',  color: 'bg-amber-500/10 text-amber-400  border-amber-500/20' },
+  lattosio:      { label: 'Latte',    color: 'bg-blue-500/10  text-blue-400   border-blue-500/20'  },
+  uova:          { label: 'Uova',     color: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20' },
+  frutta_guscio: { label: 'Frutta s.guscio', color: 'bg-orange-500/10 text-orange-400 border-orange-500/20' },
+  arachidi:      { label: 'Arachidi', color: 'bg-red-500/10   text-red-400    border-red-500/20'   },
+  sesamo:        { label: 'Sesamo',   color: 'bg-lime-500/10  text-lime-400   border-lime-500/20'  },
+  soia:          { label: 'Soia',     color: 'bg-green-500/10 text-green-400  border-green-500/20' },
+  sedano:        { label: 'Sedano',   color: 'bg-teal-500/10  text-teal-400   border-teal-500/20'  },
 };
 
 export default function ProductCard({ product, onAdd }) {
@@ -30,7 +30,7 @@ export default function ProductCard({ product, onAdd }) {
   const [justAdded, setJustAdded] = useState(false);
   const [shareJustCopied, setShareJustCopied] = useState(false);
 
-  const displayImage = product.image_url || '/images/placeholder-product.jpg';
+  const displayImage = product.image_url || '/images/placeholder-product.svg';
   const displayPrice = formatPrice(product.price, product.unit);
 
   const handleAdd = (e) => {
@@ -49,16 +49,16 @@ export default function ProductCard({ product, onAdd }) {
     setTimeout(() => setShareJustCopied(false), 2000);
   };
 
-  // Allergeni presenti nel prodotto (array o undefined se DB non ancora aggiornato)
+  // Allergeni presenti nel prodotto
   const allergenList = Array.isArray(product.allergens) ? product.allergens : [];
 
   return (
-    <article className="product-card rounded-2xl overflow-hidden border border-[#2a2725]/60 group relative" role="article" aria-label={product.name}>
+    <article className="product-card rounded-2xl overflow-hidden group relative" role="article" aria-label={product.name}>
 
-      {/* ═══ Badge "Del Giorno" ═══ */}
+      {/* ═══ Badge "Del Giorno" — più elegante ═══ */}
       {product.is_featured && (
-        <div className="absolute top-3 left-3 z-10 flex items-center gap-1 bg-primary text-[#0e0e0e] text-[10px] font-bold px-2.5 py-1 rounded-full shadow-lg shadow-primary/30 uppercase tracking-wide">
-          ✦ Del Giorno
+        <div className="absolute top-3 left-3 z-10 flex items-center gap-1 bg-primary/90 text-bg text-[10px] font-bold px-2.5 py-1 rounded-full shadow-lg uppercase tracking-[0.08em]">
+          Del Giorno
         </div>
       )}
 
@@ -68,7 +68,7 @@ export default function ProductCard({ product, onAdd }) {
         className={`absolute top-3 right-3 z-10 w-8 h-8 rounded-full flex items-center justify-center shadow-lg transition-all duration-200 opacity-0 group-hover:opacity-100 ${
           shareJustCopied
             ? 'bg-green-500 text-white'
-            : 'bg-[#0e0e0e]/80 backdrop-blur-sm text-white/70 hover:text-white hover:bg-[#25d366]'
+            : 'bg-bg/60 backdrop-blur-sm text-text-dim hover:text-white hover:bg-[#25d366]'
         }`}
         aria-label={`Condividi ${product.name} su WhatsApp`}
         title="Condividi su WhatsApp"
@@ -77,7 +77,7 @@ export default function ProductCard({ product, onAdd }) {
       </button>
 
       {/* ═══ Image ═══ */}
-      <div className="card-image-wrapper aspect-square bg-[#1a1a1a]">
+      <div className="card-image-wrapper aspect-square bg-bg-elevated">
         <img
           src={displayImage}
           alt={`${product.name} — Prodotto artigianale del Panificio Da Sergio, Chioggia`}
@@ -90,17 +90,17 @@ export default function ProductCard({ product, onAdd }) {
 
       {/* ═══ Info ═══ */}
       <div className="p-4 sm:p-5 text-center">
-        <h3 className="font-heading text-white text-lg sm:text-xl mb-2 tracking-wide">
+        <h3 className="font-heading text-white text-lg sm:text-xl mb-2 tracking-tight">
           {product.name}
         </h3>
-        <p className="text-white/65 text-sm mb-3 line-clamp-2 leading-relaxed">
+        <p className="text-text-muted text-sm mb-3 line-clamp-2 leading-relaxed">
           {product.description}
         </p>
 
         {/* Price */}
-        <div className="flex items-center justify-between mb-3 px-2">
-          <span className="text-primary font-bold text-xl">{displayPrice}</span>
-          <span className="text-white/50 text-xs uppercase tracking-wide">{product.unit}</span>
+        <div className="flex items-center justify-between mb-3 px-1">
+          <span className="text-primary font-bold text-xl tracking-tight">{displayPrice}</span>
+          <span className="text-text-dim text-[10px] uppercase tracking-wider">{product.unit}</span>
         </div>
 
         {/* ═══ Allergen badges ═══ */}
@@ -121,14 +121,14 @@ export default function ProductCard({ product, onAdd }) {
           </div>
         )}
 
-        {/* Add to Cart — with feedback */}
+        {/* Add to Cart */}
         <button
           onClick={handleAdd}
           disabled={justAdded}
           className={`w-full font-bold text-sm py-3 rounded-xl transition-all duration-300 shadow-md ${
             justAdded
               ? 'bg-green-600 text-white shadow-green-600/20 cursor-default'
-              : 'bg-[#d4a574] text-[#0e0e0e] shadow-[#d4a574]/15 hover:bg-[#e2be96] hover:shadow-[#d4a574]/30'
+              : 'bg-primary text-bg shadow-primary/15 hover:bg-primary-light hover:shadow-primary/30 hover:-translate-y-0.5'
           }`}
           aria-label={`${t.products_add_cart}: ${product.name}`}
         >

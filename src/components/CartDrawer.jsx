@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback } from 'react';
-import { X, Minus, Plus, MessageCircle, AlertCircle, Truck, Store, Calendar } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { X, Minus, Plus, MessageCircle, AlertCircle, Truck, Store, Calendar, CreditCard } from 'lucide-react';
 import { BUSINESS } from '../lib/config';
 import { useLang } from '../App';
 
@@ -15,11 +16,12 @@ export default function CartDrawer({ isOpen, onClose, items, onUpdateQuantity })
     name: '',
     phone: '',
     email: '',
-    deliveryMethod: 'pickup', // pickup | courier | reservation
+    deliveryMethod: 'pickup',
     pickupTime: t.cart_pickup_morning,
     notes: '',
   });
   const [errors, setErrors] = useState({});
+  const navigate = useNavigate();
   const [isSending, setIsSending] = useState(false);
   const lastSentAt = useRef(0);
 
@@ -45,7 +47,6 @@ export default function CartDrawer({ isOpen, onClose, items, onUpdateQuantity })
   };
 
   const handleSendWhatsApp = useCallback(() => {
-    // Throttle: prevent multiple rapid submissions
     const now = Date.now();
     if (isSending || now - lastSentAt.current < WHATSAPP_COOLDOWN_MS) return;
     if (!validate()) return;
@@ -85,7 +86,6 @@ export default function CartDrawer({ isOpen, onClose, items, onUpdateQuantity })
     const url = `https://wa.me/${BUSINESS.whatsappNumber}?text=${encodeURIComponent(message)}`;
     window.open(url, '_blank', 'noopener,noreferrer');
 
-    // Re-enable the button after the cooldown period
     setTimeout(() => setIsSending(false), WHATSAPP_COOLDOWN_MS);
   }, [formData, items, isSending, t]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -95,24 +95,24 @@ export default function CartDrawer({ isOpen, onClose, items, onUpdateQuantity })
     <>
       {/* ═══ Overlay ═══ */}
       <div
-        className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 animate-fade-in"
+        className="fixed inset-0 bg-bg/80 backdrop-blur-sm z-50 animate-fade-in"
         onClick={onClose}
         aria-hidden="true"
       />
 
       {/* ═══ Drawer ═══ */}
       <div
-        className="fixed top-0 right-0 h-full w-full sm:w-[480px] bg-[#0a0a0a]/85 backdrop-blur-[32px] saturate-150 z-50 shadow-2xl shadow-black/60 border-l border-white/[0.06] animate-slide-in flex flex-col"
+        className="fixed top-0 right-0 h-full w-full sm:w-[480px] bg-[#1a1410]/95 backdrop-blur-2xl z-50 shadow-2xl shadow-black/60 border-l border-white/[0.04] animate-slide-in flex flex-col"
         role="dialog"
         aria-modal="true"
         aria-label={t.cart_title}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-5 border-b border-[#2a2725]">
-          <h2 className="font-heading text-primary text-xl tracking-wide">{t.cart_title}</h2>
+        <div className="flex items-center justify-between p-5 border-b border-white/[0.06]">
+          <h2 className="font-heading text-primary text-xl tracking-tight">{t.cart_title}</h2>
           <button
             onClick={onClose}
-            className="text-white/50 hover:text-primary transition-colors duration-200 p-1 rounded-lg hover:bg-white/5"
+            className="text-text-dim hover:text-primary transition-colors duration-200 p-1 rounded-lg hover:bg-white/[0.04]"
             aria-label="Chiudi carrello"
           >
             <X size={20} />
@@ -123,37 +123,37 @@ export default function CartDrawer({ isOpen, onClose, items, onUpdateQuantity })
         <div className="flex-1 overflow-y-auto p-5 space-y-3">
           {items.length === 0 ? (
             <div className="text-center py-16">
-              <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-4">
-                <MessageCircle size={24} className="text-white/25" />
+              <div className="w-16 h-16 bg-white/[0.04] rounded-full flex items-center justify-center mx-auto mb-4">
+                <MessageCircle size={24} className="text-text-dim" />
               </div>
-              <p className="text-white/65 text-lg font-heading">{t.cart_empty_title}</p>
-              <p className="text-white/45 text-sm mt-2">{t.cart_empty_text}</p>
+              <p className="text-text-muted text-lg font-heading">{t.cart_empty_title}</p>
+              <p className="text-text-dim text-sm mt-2">{t.cart_empty_text}</p>
             </div>
           ) : (
             items.map((item) => (
-              <div key={item.id} className="flex gap-4 bg-[#0e0e0e] rounded-xl p-3 border border-[#2a2725]">
+              <div key={item.id} className="flex gap-4 bg-bg rounded-xl p-3 border border-border">
                 <img
-                  src={item.image_url || '/images/placeholder-product.jpg'}
+                  src={item.image_url || '/images/placeholder-product.svg'}
                   alt={item.name}
-                  className="w-16 h-16 rounded-lg object-cover bg-[#1a1a1a] shrink-0"
+                  className="w-16 h-16 rounded-lg object-cover bg-bg-elevated shrink-0"
                 />
                 <div className="flex-1 min-w-0">
-                  <h4 className="text-white text-sm font-medium truncate">{item.name}</h4>
-                  <p className="text-white/55 text-xs mt-0.5">
+                  <h4 className="text-text text-sm font-medium truncate">{item.name}</h4>
+                  <p className="text-text-dim text-xs mt-0.5">
                     {new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(item.price)} {item.unit}
                   </p>
                   <div className="flex items-center gap-2 mt-2">
                     <button
                       onClick={() => onUpdateQuantity(item.id, item.quantity - 1)}
-                      className="w-7 h-7 flex items-center justify-center bg-bg-card border border-[#2a2725] rounded-md text-white/50 hover:text-primary hover:border-primary transition-all duration-200"
+                      className="w-7 h-7 flex items-center justify-center bg-bg-card border border-border rounded-md text-text-dim hover:text-primary hover:border-primary/30 transition-all duration-200"
                       aria-label="Diminuisci"
                     >
                       <Minus size={13} />
                     </button>
-                    <span className="text-white text-sm font-medium w-6 text-center">{item.quantity}</span>
+                    <span className="text-text text-sm font-medium w-6 text-center">{item.quantity}</span>
                     <button
                       onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}
-                      className="w-7 h-7 flex items-center justify-center bg-bg-card border border-[#2a2725] rounded-md text-white/50 hover:text-primary hover:border-primary transition-all duration-200"
+                      className="w-7 h-7 flex items-center justify-center bg-bg-card border border-border rounded-md text-text-dim hover:text-primary hover:border-primary/30 transition-all duration-200"
                       aria-label="Aumenta"
                     >
                       <Plus size={13} />
@@ -167,45 +167,42 @@ export default function CartDrawer({ isOpen, onClose, items, onUpdateQuantity })
 
         {/* ═══ Checkout Form ═══ */}
         {items.length > 0 && (
-          <div className="border-t border-white/[0.06] p-5 space-y-3 bg-[#0a0a0a]/60 backdrop-blur-md max-h-[60vh] overflow-y-auto safe-bottom">
+          <div className="border-t border-white/[0.04] p-5 space-y-3 bg-bg-subtle/60 backdrop-blur-md max-h-[60vh] overflow-y-auto safe-bottom">
 
             {/* ═══ Delivery Method Selection ═══ */}
             <div>
-              <label className="text-white/70 text-xs uppercase tracking-wider mb-2 block">Come vuoi ricevere?</label>
+              <label className="text-text-dim text-xs uppercase tracking-wider mb-2 block">Come vuoi ricevere?</label>
               <div className="grid grid-cols-3 gap-2">
-                {/* Ritiro in negozio */}
                 <button
                   onClick={() => setFormData({ ...formData, deliveryMethod: 'pickup' })}
                   className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border text-xs font-medium transition-all duration-200 ${
                     formData.deliveryMethod === 'pickup'
                       ? 'border-primary bg-primary/10 text-primary'
-                      : 'border-[#2a2725] text-white/50 hover:border-white/30'
+                      : 'border-border text-text-dim hover:border-white/20'
                   }`}
                 >
                   <Store size={18} />
                   <span>Ritiro</span>
                 </button>
 
-                {/* Spedizione */}
                 <button
                   onClick={() => setFormData({ ...formData, deliveryMethod: 'courier' })}
                   className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border text-xs font-medium transition-all duration-200 ${
                     formData.deliveryMethod === 'courier'
                       ? 'border-primary bg-primary/10 text-primary'
-                      : 'border-[#2a2725] text-white/50 hover:border-white/30'
+                      : 'border-border text-text-dim hover:border-white/20'
                   }`}
                 >
                   <Truck size={18} />
                   <span>Spedizione</span>
                 </button>
 
-                {/* Prenotazione */}
                 <button
                   onClick={() => setFormData({ ...formData, deliveryMethod: 'reservation' })}
                   className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border text-xs font-medium transition-all duration-200 ${
                     formData.deliveryMethod === 'reservation'
                       ? 'border-primary bg-primary/10 text-primary'
-                      : 'border-[#2a2725] text-white/50 hover:border-white/30'
+                      : 'border-border text-text-dim hover:border-white/20'
                   }`}
                 >
                   <Calendar size={18} />
@@ -216,16 +213,16 @@ export default function CartDrawer({ isOpen, onClose, items, onUpdateQuantity })
 
             {/* Courier info */}
             {formData.deliveryMethod === 'courier' && (
-              <div className="bg-white/5 border border-[#2a2725] rounded-xl p-3 text-xs text-white/50 leading-relaxed">
-                <p className="text-white/70 font-semibold mb-1">📦 Spedizione con corriere espresso</p>
-                <p>Consegniamo con <strong className="text-white/80">Bartolini / GLS / SDA</strong>. Tempi: 24-48h in tutta Italia. Costo: <strong className="text-primary">5,90€</strong>. Gratuita per ordini sopra i 50€.</p>
+              <div className="bg-white/[0.03] border border-border rounded-xl p-3 text-xs text-text-muted leading-relaxed">
+                <p className="text-text font-semibold mb-1">📦 Spedizione con corriere espresso</p>
+                <p>Consegniamo con <strong className="text-text">Bartolini / GLS / SDA</strong>. Tempi: 24-48h in tutta Italia. Costo: <strong className="text-primary">5,90€</strong>. Gratuita per ordini sopra i 50€.</p>
               </div>
             )}
 
             {/* Reservation info */}
             {formData.deliveryMethod === 'reservation' && (
-              <div className="bg-white/5 border border-[#2a2725] rounded-xl p-3 text-xs text-white/50 leading-relaxed">
-                <p className="text-white/70 font-semibold mb-1">📅 Prenotazione prodotto</p>
+              <div className="bg-white/[0.03] border border-border rounded-xl p-3 text-xs text-text-muted leading-relaxed">
+                <p className="text-text font-semibold mb-1">📅 Prenotazione prodotto</p>
                 <p>Se il prodotto che desideri non è disponibile subito, lo prepariamo su ordinazione. Ti contattiamo via WhatsApp per confermare la disponibilità.</p>
               </div>
             )}
@@ -237,8 +234,8 @@ export default function CartDrawer({ isOpen, onClose, items, onUpdateQuantity })
                 placeholder={t.cart_name_placeholder}
                 value={formData.name}
                 onChange={(e) => { setFormData({ ...formData, name: e.target.value }); setErrors({}); }}
-                className={`w-full bg-[#0e0e0e] border rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/40 focus:outline-none focus:border-primary transition-colors duration-200 ${
-                  errors.name ? 'border-red-500/50' : 'border-[#2a2725]'
+                className={`w-full bg-bg border rounded-xl px-4 py-3 text-sm text-text placeholder:text-text-dim/60 focus:outline-none focus:border-primary transition-colors duration-200 ${
+                  errors.name ? 'border-red-500/50' : 'border-border'
                 }`}
               />
               {errors.name && (
@@ -255,8 +252,8 @@ export default function CartDrawer({ isOpen, onClose, items, onUpdateQuantity })
                 placeholder={t.cart_phone_placeholder}
                 value={formData.phone}
                 onChange={(e) => { setFormData({ ...formData, phone: e.target.value }); setErrors({}); }}
-                className={`w-full bg-[#0e0e0e] border rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/40 focus:outline-none focus:border-primary transition-colors duration-200 ${
-                  errors.phone ? 'border-red-500/50' : 'border-[#2a2725]'
+                className={`w-full bg-bg border rounded-xl px-4 py-3 text-sm text-text placeholder:text-text-dim/60 focus:outline-none focus:border-primary transition-colors duration-200 ${
+                  errors.phone ? 'border-red-500/50' : 'border-border'
                 }`}
               />
               {errors.phone && (
@@ -273,8 +270,8 @@ export default function CartDrawer({ isOpen, onClose, items, onUpdateQuantity })
                 placeholder="Indirizzo email (obbligatoria)"
                 value={formData.email}
                 onChange={(e) => { setFormData({ ...formData, email: e.target.value }); setErrors({}); }}
-                className={`w-full bg-[#0e0e0e] border rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/40 focus:outline-none focus:border-primary transition-colors duration-200 ${
-                  errors.email || errors.emailFormat ? 'border-red-500/50' : 'border-[#2a2725]'
+                className={`w-full bg-bg border rounded-xl px-4 py-3 text-sm text-text placeholder:text-text-dim/60 focus:outline-none focus:border-primary transition-colors duration-200 ${
+                  errors.email || errors.emailFormat ? 'border-red-500/50' : 'border-border'
                 }`}
               />
               {errors.email && (
@@ -294,7 +291,7 @@ export default function CartDrawer({ isOpen, onClose, items, onUpdateQuantity })
               <select
                 value={formData.pickupTime}
                 onChange={(e) => setFormData({ ...formData, pickupTime: e.target.value })}
-                className="w-full bg-[#0e0e0e] border border-[#2a2725] rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-primary transition-colors duration-200 appearance-none cursor-pointer"
+                className="w-full bg-bg border border-border rounded-xl px-4 py-3 text-sm text-text focus:outline-none focus:border-primary transition-colors duration-200 appearance-none cursor-pointer"
               >
                 <option value={t.cart_pickup_morning}>{t.cart_pickup_morning}</option>
                 <option value={t.cart_pickup_afternoon}>{t.cart_pickup_afternoon}</option>
@@ -307,38 +304,61 @@ export default function CartDrawer({ isOpen, onClose, items, onUpdateQuantity })
               value={formData.notes}
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
               rows={2}
-              className="w-full bg-[#0e0e0e] border border-[#2a2725] rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-primary transition-colors duration-200 resize-none"
+              className="w-full bg-bg border border-border rounded-xl px-4 py-3 text-sm text-text placeholder:text-text-dim/50 focus:outline-none focus:border-primary transition-colors duration-200 resize-none"
             />
 
             {/* Totale */}
-            <div className="flex items-center justify-between pt-3 border-t border-[#2a2725]">
-              <span className="font-heading text-white/60 text-base">{t.cart_total}</span>
+            <div className="flex items-center justify-between pt-3 border-t border-border">
+              <span className="font-heading text-text-muted text-base">{t.cart_total}</span>
               <div className="text-right">
                 <span className="font-heading text-primary text-2xl font-bold">
                   {total.toFixed(2).replace('.', ',')}€
                 </span>
                 {shipping > 0 && (
-                  <p className="text-white/35 text-[10px] mt-0.5">incl. {shipping.toFixed(2).replace('.', ',')}€ spedizione</p>
+                  <p className="text-text-dim text-[10px] mt-0.5">incl. {shipping.toFixed(2).replace('.', ',')}€ spedizione</p>
                 )}
               </div>
             </div>
 
-            {/* WhatsApp CTA */}
-            <button
-              onClick={handleSendWhatsApp}
-              disabled={isSending}
-              aria-busy={isSending}
-              className={`btn-primary w-full text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2.5 transition-all duration-300 text-sm ${
-                isSending
-                  ? 'bg-[#25d366]/50 cursor-not-allowed'
-                  : 'bg-[#25d366] hover:bg-[#20bd5a]'
-              }`}
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
-              </svg>
-              {t.cart_whatsapp_btn}
-            </button>
+            {/* ═══ Checkout / WhatsApp actions ═══ */}
+            <div className="space-y-2">
+              <button
+                onClick={() => {
+                  if (!validate()) return;
+                  onClose();
+                  navigate('/checkout');
+                }}
+                className="w-full bg-primary text-bg font-bold py-3.5 rounded-xl flex items-center justify-center gap-2.5 transition-all duration-300 text-sm shadow-md hover:bg-primary-light hover:shadow-lg hover:shadow-primary/20"
+              >
+                <CreditCard size={18} />
+                Procedi al Pagamento
+              </button>
+
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-white/[0.04]" />
+                </div>
+                <div className="relative flex justify-center">
+                  <span className="bg-[#1a1410]/95 px-3 text-text-dim text-[10px] uppercase tracking-wider">oppure</span>
+                </div>
+              </div>
+
+              <button
+                onClick={handleSendWhatsApp}
+                disabled={isSending}
+                aria-busy={isSending}
+                className={`w-full font-bold py-3 rounded-xl flex items-center justify-center gap-2.5 transition-all duration-300 text-sm border ${
+                  isSending
+                    ? 'border-white/10 text-text-dim cursor-not-allowed'
+                    : 'border-[#25d366]/30 text-[#25d366] hover:bg-[#25d366]/5 hover:border-[#25d366]/60'
+                }`}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                </svg>
+                {isSending ? 'Inviato!' : 'Ordina via WhatsApp'}
+              </button>
+            </div>
           </div>
         )}
       </div>

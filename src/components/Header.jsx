@@ -41,8 +41,8 @@ export default function Header({ cartCount, onCartClick, activeSection }) {
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
         scrolled
-          ? 'bg-[#0e0e0e]/60 backdrop-blur-2xl saturate-150 shadow-xl shadow-black/40 border-b border-white/[0.06]'
-          : 'bg-black/10 backdrop-blur-sm'
+          ? 'bg-[#1a1410]/80 backdrop-blur-2xl shadow-xl shadow-black/50 border-b border-white/[0.05]'
+          : 'bg-transparent'
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -51,7 +51,7 @@ export default function Header({ cartCount, onCartClick, activeSection }) {
           {/* ═══ Mobile Hamburger ═══ */}
           <div className="flex items-center gap-2">
             <button
-              className="text-primary p-2 rounded-lg transition-all duration-200 hover:bg-white/5 lg:hidden"
+              className="text-primary/80 hover:text-primary p-2 rounded-lg transition-all duration-200 hover:bg-white/[0.04] lg:hidden"
               onClick={() => setMenuOpen(!menuOpen)}
               aria-label="Menu"
             >
@@ -59,7 +59,7 @@ export default function Header({ cartCount, onCartClick, activeSection }) {
             </button>
           </div>
 
-          {/* ═══ Centered Logo — always centered on all screen sizes ═══ */}
+          {/* ═══ Centered Logo ═══ */}
           <div className="absolute left-1/2 -translate-x-1/2">
             <button
               onClick={() => scrollToSection('home')}
@@ -67,10 +67,10 @@ export default function Header({ cartCount, onCartClick, activeSection }) {
               aria-label="Torna alla home"
             >
               <div className="flex flex-col items-center leading-none">
-                <span className="font-heading text-lg sm:text-xl lg:text-2xl text-primary tracking-[0.15em] group-hover:text-primary-light transition-colors duration-300">
+                <span className="font-heading text-lg sm:text-xl lg:text-2xl text-primary tracking-[0.12em] group-hover:text-primary-light transition-colors duration-300">
                   PANIFICIO DA SERGIO
                 </span>
-                <span className="hidden sm:block text-[10px] tracking-[0.2em] uppercase text-white/40 mt-1">
+                <span className={`hidden sm:block text-[10px] tracking-[0.25em] uppercase text-text-dim mt-1 transition-opacity duration-300 ${scrolled ? 'opacity-60' : 'opacity-100'}`}>
                   {t.hero_slogan} · Chioggia
                 </span>
               </div>
@@ -80,15 +80,15 @@ export default function Header({ cartCount, onCartClick, activeSection }) {
           {/* ═══ Right: Cart + Lang ═══ */}
           <div className="flex items-center gap-1 ml-auto lg:ml-0">
             {/* Language Toggle (desktop) */}
-            <div className="hidden sm:flex items-center gap-0.5 mr-2 bg-white/5 rounded-full p-0.5 border border-[#2a2725]">
+            <div className="hidden sm:flex items-center gap-0.5 mr-2 bg-white/[0.04] rounded-full p-0.5 border border-white/[0.06]">
               {LANGUAGES.map((l) => (
                 <button
                   key={l.code}
                   onClick={() => setLang(l.code)}
-                  className={`px-2.5 py-1 rounded-full text-[11px] font-bold transition-all duration-200 ${
+                  className={`px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all duration-200 ${
                     lang === l.code
                       ? 'bg-primary text-bg'
-                      : 'text-white/50 hover:text-primary'
+                      : 'text-text-dim hover:text-primary'
                   }`}
                   aria-label={l.name}
                 >
@@ -99,7 +99,7 @@ export default function Header({ cartCount, onCartClick, activeSection }) {
 
             {/* Cart Button */}
             <button
-              className="relative text-primary p-2 rounded-lg transition-all duration-200 hover:bg-white/5"
+              className="relative text-primary/80 hover:text-primary p-2 rounded-lg transition-all duration-200 hover:bg-white/[0.04]"
               onClick={onCartClick}
               aria-label="Carrello"
             >
@@ -116,7 +116,7 @@ export default function Header({ cartCount, onCartClick, activeSection }) {
 
       {/* ═══ Mobile Full-Screen Menu ═══ */}
       {menuOpen && (
-        <div className="lg:hidden fixed inset-0 top-16 z-40 bg-[#0e0e0e]/98 backdrop-blur-xl animate-fade-in">
+        <div className="lg:hidden fixed inset-0 top-16 z-40 bg-[#1a1410]/98 backdrop-blur-2xl animate-fade-in">
           <nav className="flex flex-col items-center justify-center h-full gap-2 px-8">
             {navItems.map((link, i) => (
               <button
@@ -125,7 +125,7 @@ export default function Header({ cartCount, onCartClick, activeSection }) {
                 className={`w-full text-center py-4 text-2xl font-heading transition-all duration-300 animate-fade-in-up ${
                   activeSection === link.id
                     ? 'text-primary'
-                    : 'text-white/70 hover:text-primary'
+                    : 'text-text-muted hover:text-primary'
                 }`}
                 style={{ animationDelay: `${i * 0.08}s` }}
               >
@@ -134,15 +134,15 @@ export default function Header({ cartCount, onCartClick, activeSection }) {
             ))}
 
             {/* Mobile Language Switcher */}
-            <div className="flex items-center gap-2 mt-8 pt-6 border-t border-[#2a2725]">
+            <div className="flex items-center gap-2 mt-8 pt-6 border-t border-white/[0.06]">
               {LANGUAGES.map((l) => (
                 <button
                   key={l.code}
                   onClick={() => { setLang(l.code); }}
-                  className={`px-5 py-2.5 rounded-full text-sm font-bold transition-all duration-200 ${
+                  className={`px-5 py-2.5 rounded-full text-sm font-semibold transition-all duration-200 ${
                     lang === l.code
                       ? 'bg-primary text-bg'
-                      : 'bg-white/5 text-white/50 border border-[#2a2725] hover:border-primary'
+                      : 'bg-white/[0.04] text-text-dim border border-white/[0.06] hover:border-primary/30'
                   }`}
                 >
                   {l.label} — {l.name}
@@ -151,8 +151,8 @@ export default function Header({ cartCount, onCartClick, activeSection }) {
             </div>
 
             {/* Contact Info */}
-            <div className="mt-8 pt-6 border-t border-[#2a2725] text-center">
-              <p className="text-white/50 text-sm">{BUSINESS.address}</p>
+            <div className="mt-8 pt-6 border-t border-white/[0.06] text-center">
+              <p className="text-text-dim text-sm">{BUSINESS.address}</p>
               <a href={`tel:${BUSINESS.phone}`} className="text-primary text-sm mt-1 block hover:underline">
                 {BUSINESS.phone}
               </a>
@@ -162,7 +162,7 @@ export default function Header({ cartCount, onCartClick, activeSection }) {
       )}
 
       {/* ═══ Desktop Navigation Bar ═══ */}
-      <nav className="hidden lg:block border-t border-[#2a2725]/30">
+      <nav className="hidden lg:block border-t border-white/[0.04]">
         <div className="max-w-7xl mx-auto px-8">
           <div className="flex justify-center items-center gap-10 h-11">
             {navItems.map((link) => {
@@ -171,10 +171,10 @@ export default function Header({ cartCount, onCartClick, activeSection }) {
                 <button
                   key={link.id}
                   onClick={() => scrollToSection(link.id)}
-                  className={`text-[11px] tracking-[0.2em] uppercase transition-colors duration-300 relative group ${
+                  className={`text-[11px] tracking-[0.22em] uppercase transition-colors duration-300 relative group ${
                     isActive
                       ? 'text-primary'
-                      : 'text-white/50 hover:text-primary'
+                      : 'text-text-dim hover:text-primary'
                   }`}
                 >
                   {link.label}
@@ -190,4 +190,3 @@ export default function Header({ cartCount, onCartClick, activeSection }) {
     </header>
   );
 }
-

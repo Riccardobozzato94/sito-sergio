@@ -32,24 +32,24 @@ export default function About() {
   ];
 
   return (
-    <section id="chi-siamo" className="py-16 sm:py-20 lg:py-24 bg-[#111111] border-y border-[#2a2725]/30">
+    <section id="chi-siamo" className="py-16 sm:py-20 lg:py-24 bg-bg-elevated border-y border-white/[0.04]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
         {/* ═══ Section Title ═══ */}
         <div className="text-center mb-12 sm:mb-16">
-          <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl text-primary tracking-wide">
+          <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl text-primary tracking-tight">
             {t.about_title}
           </h2>
-          <p className="text-white/65 mt-4 max-w-lg mx-auto text-sm sm:text-base">
+          <p className="text-text-muted mt-4 max-w-lg mx-auto text-sm sm:text-base">
             {t.about_subtitle}
           </p>
         </div>
 
         {/* ═══ Years Badge ═══ */}
         <div className="text-center mb-12">
-          <div className="inline-flex items-center gap-3 bg-bg-card border border-[#2a2725] rounded-2xl px-8 py-4">
+          <div className="inline-flex items-center gap-3 bg-bg-card border border-border rounded-2xl px-8 py-4">
             <span className="font-heading text-4xl sm:text-5xl text-primary font-bold">{yearsOfTradition}</span>
-            <span className="text-white/60 text-sm leading-tight text-left">{t.products_tradition}</span>
+            <span className="text-text-muted text-sm leading-tight text-left">{t.products_tradition}</span>
           </div>
         </div>
 
@@ -58,10 +58,10 @@ export default function About() {
 
           {/* Story */}
           <div className="flex-1 text-center lg:text-left">
-            <h3 className="font-heading text-2xl sm:text-3xl text-white mb-6">
+            <h3 className="font-heading text-2xl sm:text-3xl text-text mb-6">
               {t.about_story_title}
             </h3>
-            <div className="space-y-4 text-white/70 text-sm sm:text-base leading-relaxed">
+            <div className="space-y-4 text-text-muted text-sm sm:text-base leading-relaxed">
               <p>{t.about_story_p1}</p>
               <p>{t.about_story_p2}</p>
               <p>{t.about_story_p3}</p>
@@ -70,7 +70,7 @@ export default function About() {
 
           {/* Store Photo */}
           <div className="shrink-0">
-            <div className="w-72 sm:w-80 lg:w-96 aspect-[4/3] bg-[#1a1a1a] rounded-2xl overflow-hidden border border-[#2a2725] shadow-2xl shadow-black/30">
+            <div className="w-72 sm:w-80 lg:w-96 aspect-[4/3] bg-bg-elevated rounded-2xl overflow-hidden border border-border shadow-2xl shadow-black/30">
               <img
                 src="/images/storefront.jpg"
                 alt={`Esterno del ${BUSINESS.name} — ${BUSINESS.address}`}
@@ -85,20 +85,20 @@ export default function About() {
 
         {/* ═══ Values Grid ═══ */}
         <div className="mb-16">
-          <h3 className="font-heading text-2xl sm:text-3xl text-white text-center mb-8">
+          <h3 className="font-heading text-2xl sm:text-3xl text-text text-center mb-8">
             {t.about_values_title}
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {values.map((v, i) => (
               <div
                 key={i}
-                className="bg-bg-card rounded-2xl border border-[#2a2725] p-6 sm:p-8 text-center hover:border-primary/20 transition-all duration-300 reveal"
+                className="bg-bg-card rounded-2xl border border-border p-6 sm:p-8 text-center hover:border-primary/20 transition-all duration-300 reveal"
               >
                 <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4 text-primary">
                   {v.icon}
                 </div>
-                <h4 className="font-heading text-xl text-white mb-3">{v.title}</h4>
-                <p className="text-white/60 text-sm leading-relaxed">{v.desc}</p>
+                <h4 className="font-heading text-xl text-text mb-3">{v.title}</h4>
+                <p className="text-text-muted text-sm leading-relaxed">{v.desc}</p>
               </div>
             ))}
           </div>
@@ -106,7 +106,7 @@ export default function About() {
 
         {/* ═══ Process Steps ═══ */}
         <div>
-          <h3 className="font-heading text-2xl sm:text-3xl text-white text-center mb-8">
+          <h3 className="font-heading text-2xl sm:text-3xl text-text text-center mb-8">
             {t.about_process_title}
           </h3>
           <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6">
@@ -116,7 +116,7 @@ export default function About() {
                   <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary border border-primary/20">
                     {step.icon}
                   </div>
-                  <span className="text-white/70 text-xs sm:text-sm text-center max-w-[120px]">
+                  <span className="text-text-muted text-xs sm:text-sm text-center max-w-[120px]">
                     {step.label}
                   </span>
                 </div>
@@ -129,7 +129,7 @@ export default function About() {
         </div>
 
         {/* ═══ Quote ═══ */}
-        <div className="mt-16 pt-10 border-t border-[#2a2725]/30">
+        <div className="mt-16 pt-10 border-t border-white/[0.04]">
           <div className="text-center max-w-3xl mx-auto">
             <div className="inline-block mb-5">
               <svg width="40" height="40" viewBox="0 0 40 40" className="text-primary/30">
@@ -137,7 +137,7 @@ export default function About() {
                 <path d="M26 25C26 18 30 12 38 12C40 12 40 14 40 18C40 22 38 24 34 24C32 24 30 23 29 22C28 24 26 26 26 25Z" fill="currentColor"/>
               </svg>
             </div>
-            <blockquote className="font-heading text-xl sm:text-2xl lg:text-3xl text-white/90 leading-relaxed italic mb-6">
+            <blockquote className="font-heading text-xl sm:text-2xl lg:text-3xl text-text leading-relaxed italic mb-6">
               {t.quote_text}
             </blockquote>
             <div className="flex items-center justify-center gap-3">

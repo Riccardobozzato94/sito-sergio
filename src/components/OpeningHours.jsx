@@ -10,7 +10,7 @@ export default function OpeningHours() {
   const mappedToday = todayIndex === 0 ? 6 : todayIndex - 1;
 
   return (
-    <section id="orari" className="py-16 sm:py-20 lg:py-24 bg-[#111111] border-y border-[#2a2725]/30">
+    <section id="orari" className="py-16 sm:py-20 lg:py-24 bg-bg-elevated border-y border-white/[0.04]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col lg:flex-row items-center gap-10 lg:gap-16">
 
@@ -18,11 +18,11 @@ export default function OpeningHours() {
           <div className="flex-1 text-center lg:text-left">
             <div className="inline-flex items-center gap-3 mb-5">
               <Clock size={24} className="text-primary" />
-              <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl text-primary tracking-wide">
+              <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl text-primary tracking-tight">
                 {t.hours_title}
               </h2>
             </div>
-            <p className="text-white/65 mb-8 max-w-md text-sm sm:text-base">
+            <p className="text-text-muted mb-8 max-w-md text-sm sm:text-base">
               {t.hours_subtitle}
             </p>
 
@@ -46,7 +46,7 @@ export default function OpeningHours() {
                           {t.hours_today}
                         </span>
                       )}
-                      <span className={`text-sm ${isToday ? 'text-white font-semibold' : 'text-white/70'}`}>
+                      <span className={`text-sm ${isToday ? 'text-text font-semibold' : 'text-text-muted'}`}>
                         {h.day}
                       </span>
                     </div>
@@ -54,8 +54,8 @@ export default function OpeningHours() {
                       isToday
                         ? 'text-primary'
                         : isOpen
-                        ? 'text-white/80'
-                        : 'text-white/40'
+                        ? 'text-text/80'
+                        : 'text-text-dim'
                     }`}>
                       {isOpen ? h.hours : t.closed}
                     </span>
@@ -67,7 +67,7 @@ export default function OpeningHours() {
 
           {/* ═══ Right: Visual card ═══ */}
           <div className="shrink-0">
-            <div className="w-72 sm:w-80 lg:w-96 bg-bg-card rounded-2xl border border-[#2a2725] p-8 text-center shadow-2xl shadow-black/30">
+            <div className="w-72 sm:w-80 lg:w-96 bg-bg-card rounded-2xl border border-border p-8 text-center shadow-2xl shadow-black/30">
               {/* Status indicator */}
               {(() => {
                 const currentHour = new Date().getHours();
@@ -79,19 +79,19 @@ export default function OpeningHours() {
                 return (
                   <>
                     <div className={`w-4 h-4 rounded-full mx-auto mb-4 ${isCurrentlyOpen ? 'bg-green-500 animate-pulse' : 'bg-red-400'}`} />
-                    <p className={`font-heading text-lg mb-1 ${isCurrentlyOpen ? 'text-green-400' : 'text-white/50'}`}>
+                    <p className={`font-heading text-lg mb-1 ${isCurrentlyOpen ? 'text-green-400' : 'text-text-dim'}`}>
                       {isCurrentlyOpen ? t.hours_open : t.hours_closed}
                     </p>
                     {todayHours && todayHours.hours !== 'Chiuso' && (
-                      <p className="text-white/40 text-xs">{todayHours.hours}</p>
+                      <p className="text-text-dim text-xs">{todayHours.hours}</p>
                     )}
                   </>
                 );
               })()}
 
               {/* Address */}
-              <div className="mt-6 pt-6 border-t border-[#2a2725]/50">
-                <p className="text-white/50 text-sm">{BUSINESS.address}</p>
+              <div className="mt-6 pt-6 border-t border-border/50">
+                <p className="text-text-dim text-sm">{BUSINESS.address}</p>
                 <a
                   href={`https://maps.google.com/?q=${encodeURIComponent(BUSINESS.address)}`}
                   target="_blank"

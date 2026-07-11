@@ -5,7 +5,8 @@ import { useLang } from '../App';
 export default function Contacts() {
   const { t } = useLang();
 
-  const mapEmbedUrl = `https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2800!2d12.2833!3d45.2167!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2sCalle+Ponte+Caneva+626%2C+Chioggia!5e0!3m2!1sit!2sit!4v1700000000000`;
+  // OpenStreetMap embed (no API key required) — reliable and privacy-friendly
+  const mapEmbedUrl = `https://www.openstreetmap.org/export/embed.html?bbox=12.27488%2C45.21702%2C12.28488%2C45.22702&amp;layer=mapnik&amp;marker=45.22202%2C12.27988`;
 
   const contactCards = [
     {
@@ -45,10 +46,10 @@ export default function Contacts() {
 
         {/* ═══ Section Title ═══ */}
         <div className="text-center mb-10 sm:mb-14">
-          <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl text-primary tracking-wide">
+          <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl text-primary tracking-tight">
             {t.contacts_title}
           </h2>
-          <p className="text-white/60 mt-4 max-w-lg mx-auto text-sm sm:text-base">
+          <p className="text-text-muted mt-4 max-w-lg mx-auto text-sm sm:text-base">
             {t.contacts_subtitle}
           </p>
         </div>
@@ -64,7 +65,7 @@ export default function Contacts() {
               className={`group bg-bg-card rounded-2xl p-6 border transition-all duration-300 text-center ${
                 card.highlight
                   ? 'border-[#25d366]/30 hover:border-[#25d366]/60 hover:shadow-lg hover:shadow-[#25d366]/10'
-                  : 'border-[#2a2725] hover:border-primary/30 hover:shadow-lg hover:shadow-black/20'
+                  : 'border-border hover:border-primary/30 hover:shadow-lg hover:shadow-black/20'
               }`}
             >
               <div className={`w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4 transition-colors duration-300 ${
@@ -74,11 +75,11 @@ export default function Contacts() {
               }`}>
                 {card.icon}
               </div>
-              <h3 className="font-heading text-white text-base mb-1.5">{card.label}</h3>
+              <h3 className="font-heading text-text text-base mb-1.5">{card.label}</h3>
               <p className={`text-sm transition-colors duration-300 ${
                 card.highlight
                   ? 'text-[#25d366] group-hover:underline'
-                  : 'text-white/65 group-hover:text-primary'
+                  : 'text-text-muted group-hover:text-primary'
               }`}>
                 {card.value}
               </p>
@@ -95,7 +96,7 @@ export default function Contacts() {
             style={{ border: 0 }}
             allowFullScreen=""
             loading="lazy"
-            referrerPolicy="no-referrer-when-downgrade"
+            referrerPolicy="no-referrer"
             title={`${BUSINESS.name} — Mappa Google`}
             aria-label={`Mappa con la posizione del ${BUSINESS.name}`}
           />

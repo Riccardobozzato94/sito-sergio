@@ -1,4 +1,4 @@
-import { MapPin, Phone, Mail, Clock } from 'lucide-react';
+import { MapPin, Phone, Mail } from 'lucide-react';
 import { BUSINESS, SOCIAL, HOURS } from '../lib/config';
 import { useLang } from '../App';
 
@@ -7,24 +7,24 @@ export default function Footer() {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="bg-[#0a0a0a] border-t border-[#2a2725]/30">
+    <footer className="bg-[#15100c] border-t border-white/[0.04]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-10">
 
           {/* ═══ Contatti ═══ */}
           <div>
             <h3 className="font-heading text-primary text-sm tracking-[0.2em] uppercase mb-5">{t.footer_contacts}</h3>
-            <div className="space-y-3 text-white/60 text-sm">
+            <div className="space-y-3 text-text-muted text-sm">
               <div className="flex items-start gap-3">
-                <MapPin size={15} className="text-primary/60 shrink-0 mt-0.5" />
+                <MapPin size={15} className="text-primary/50 shrink-0 mt-0.5" />
                 <span>{BUSINESS.address}</span>
               </div>
               <a href={`tel:${BUSINESS.phone}`} className="flex items-center gap-3 hover:text-primary transition-colors">
-                <Phone size={15} className="text-primary/60 shrink-0" />
+                <Phone size={15} className="text-primary/50 shrink-0" />
                 <span>{BUSINESS.phone}</span>
               </a>
               <a href={`mailto:${BUSINESS.email}`} className="flex items-center gap-3 hover:text-primary transition-colors">
-                <Mail size={15} className="text-primary/60 shrink-0" />
+                <Mail size={15} className="text-primary/50 shrink-0" />
                 <span>{BUSINESS.email}</span>
               </a>
             </div>
@@ -41,7 +41,7 @@ export default function Footer() {
                 href={SOCIAL.facebook}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-10 h-10 bg-white/5 border border-[#2a2725] rounded-xl flex items-center justify-center text-white/60 hover:text-[#1877f2] hover:border-[#1877f2]/30 transition-all duration-300"
+                className="w-10 h-10 bg-white/[0.03] border border-white/[0.06] rounded-xl flex items-center justify-center text-text-dim hover:text-[#1877f2] hover:border-[#1877f2]/20 transition-all duration-300"
                 aria-label="Facebook"
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
@@ -55,7 +55,7 @@ export default function Footer() {
                   href={SOCIAL.instagram}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-10 h-10 bg-white/5 border border-[#2a2725] rounded-xl flex items-center justify-center text-white/60 hover:text-[#e4405f] hover:border-[#e4405f]/30 transition-all duration-300"
+                  className="w-10 h-10 bg-white/[0.03] border border-white/[0.06] rounded-xl flex items-center justify-center text-text-dim hover:text-[#e4405f] hover:border-[#e4405f]/20 transition-all duration-300"
                   aria-label="Instagram"
                 >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
@@ -69,7 +69,7 @@ export default function Footer() {
                 href={SOCIAL.tripadvisor}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-10 h-10 bg-white/5 border border-[#2a2725] rounded-xl flex items-center justify-center text-white/60 hover:text-[#34e0a1] hover:border-[#34e0a1]/30 transition-all duration-300"
+                className="w-10 h-10 bg-white/[0.03] border border-white/[0.06] rounded-xl flex items-center justify-center text-text-dim hover:text-[#34e0a1] hover:border-[#34e0a1]/20 transition-all duration-300"
                 aria-label="TripAdvisor"
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
@@ -90,7 +90,7 @@ export default function Footer() {
                 <button
                   key={link.id}
                   onClick={() => document.getElementById(link.id)?.scrollIntoView({ behavior: 'smooth' })}
-                  className="block text-white/60 hover:text-primary text-sm transition-colors duration-200"
+                  className="block text-text-dim hover:text-primary text-sm transition-colors duration-200"
                 >
                   {link.label}
                 </button>
@@ -103,8 +103,8 @@ export default function Footer() {
             <h3 className="font-heading text-primary text-sm tracking-[0.2em] uppercase mb-5">{t.footer_hours}</h3>
             <div className="space-y-2 text-sm">
               {HOURS.map((h) => (
-                <div key={h.day} className="flex justify-between text-white/60">
-                  <span className="text-white/80">{h.day.substring(0, 3)}</span>
+                <div key={h.day} className="flex justify-between text-text-muted">
+                  <span className="text-text">{h.day.substring(0, 3)}</span>
                   <span className={h.hours === 'Chiuso' ? 'text-primary font-medium' : ''}>
                     {h.hours === 'Chiuso' ? t.closed : h.hours}
                   </span>
@@ -116,14 +116,14 @@ export default function Footer() {
           {/* ═══ Newsletter (WhatsApp redirect) ═══ */}
           <div>
             <h3 className="font-heading text-primary text-sm tracking-[0.2em] uppercase mb-5">{t.footer_newsletter}</h3>
-            <p className="text-white/60 text-sm mb-4">
+            <p className="text-text-muted text-sm mb-4 leading-relaxed">
               {t.footer_newsletter_text}
             </p>
             <a
               href={`https://wa.me/${BUSINESS.whatsappNumber}?text=${encodeURIComponent('Ciao! Vorrei ricevere novità e promozioni dal Panificio Da Sergio.')}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="btn-primary w-full bg-[#25d366] text-white font-bold py-2.5 rounded-xl flex items-center justify-center gap-2 text-sm hover:bg-[#20bd5a] transition-all duration-300"
+              className="w-full bg-[#25d366] text-white font-bold py-2.5 rounded-xl flex items-center justify-center gap-2 text-sm hover:bg-[#20bd5a] transition-all duration-300 shadow-md hover:shadow-lg hover:shadow-[#25d366]/20"
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
@@ -134,15 +134,15 @@ export default function Footer() {
         </div>
 
         {/* ═══ Bottom Bar ═══ */}
-        <div className="mt-10 pt-8 border-t border-[#2a2725]/30 text-center">
-          <p className="font-heading text-white/70 text-base italic mb-2">
-            {t.footer_since} {BUSINESS.since} — {t.footer_tagline}
+        <div className="mt-10 pt-8 border-t border-white/[0.04] text-center">
+          <p className="font-heading text-text-muted text-base italic mb-2">
+            {t.footer_since} <span className="text-primary not-italic font-semibold">{BUSINESS.since}</span> — {t.footer_tagline}
           </p>
-          <p className="text-white/50 text-xs">
+          <p className="text-text-dim text-xs">
             {t.copyright?.(year) || `© ${year} ${BUSINESS.name}. ${t.footer_copyright}`}
           </p>
           <div className="mt-3 flex flex-wrap justify-center gap-4 text-xs">
-            <a href="#privacy" className="text-white/55 hover:text-primary transition-colors">Privacy & Cookie Policy</a>
+            <a href="#privacy" className="text-text-dim hover:text-primary transition-colors">Privacy & Cookie Policy</a>
           </div>
         </div>
       </div>

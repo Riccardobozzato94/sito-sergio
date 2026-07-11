@@ -1,4 +1,5 @@
 import { useState, createContext, useContext, useEffect, useCallback } from 'react';
+import { HashRouter, Routes, Route } from 'react-router-dom';
 import { LANGUAGES, translations } from './lib/i18n';
 import Header from './components/Header';
 import Hero from './components/Hero';
@@ -14,52 +15,38 @@ import CartDrawer from './components/CartDrawer';
 import CartToast from './components/CartToast';
 import PrivacyPolicy from './components/PrivacyPolicy';
 import CookieBanner from './components/CookieBanner';
+import ProtectedRoute from './components/ProtectedRoute';
+import AdminLogin from './pages/AdminLogin';
+import AdminDashboard from './pages/AdminDashboard';
+import Checkout from './pages/Checkout';
+import Confirmation from './pages/Confirmation';
 import { BUSINESS } from './lib/config';
 
+// ═══════════════════════════════════════════════════════════
+// Cart Context — shared between main site and checkout
+// ═══════════════════════════════════════════════════════════
+export const CartContext = createContext();
+
+export function useCart() {
+  return useContext(CartContext);
+}
+
+// ═══════════════════════════════════════════════════════════
 // Language Context
+// ═══════════════════════════════════════════════════════════
 export const LangContext = createContext();
 
 export function useLang() {
   return useContext(LangContext);
 }
 
-function App() {
-  const [lang, setLang] = useState('it');
-  const t = translations[lang];
-  const [cart, setCart] = useState([]);
-  const [cartOpen, setCartOpen] = useState(false);
+// ═══════════════════════════════════════════════════════════
+// Main Site (single-page scroll)
+// ═══════════════════════════════════════════════════════════
+function MainSite() {
+  const { lang, setLang, t, cart, addToCart, cartCount, cartOpen, setCartOpen, updateQuantity, cartToast } = useCart();
   const [showPrivacy, setShowPrivacy] = useState(false);
   const [activeSection, setActiveSection] = useState('home');
-  const [cartToast, setCartToast] = useState(null);
-
-  // ── Cart Logic ──
-  const addToCart = (product) => {
-    setCart((prev) => {
-      const existing = prev.find((item) => item.id === product.id);
-      if (existing) {
-        return prev.map((item) =>
-          item.id === product.id
-            ? { ...item, quantity: item.quantity + 1 }
-            : item
-        );
-      }
-      return [...prev, { ...product, quantity: 1 }];
-    });
-    // Show toast notification — unique id so repeated adds re-trigger animation
-    setCartToast({ id: Date.now(), productName: product.name });
-  };
-
-  const updateQuantity = (id, quantity) => {
-    if (quantity <= 0) {
-      setCart((prev) => prev.filter((item) => item.id !== id));
-    } else {
-      setCart((prev) =>
-        prev.map((item) => (item.id === id ? { ...item, quantity } : item))
-      );
-    }
-  };
-
-  const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
   // ── Scroll Reveal ──
   useEffect(() => {
@@ -100,14 +87,14 @@ function App() {
     return () => window.removeEventListener('scroll', updateActiveSection);
   }, [updateActiveSection]);
 
-  // ── Privacy Policy route from footer link ──
+  // ── Privacy Policy route ──
   useEffect(() => {
     const hash = window.location.hash;
-    if (hash === '#privacy' || hash === '#privacy-policy') {
+    if (hash === '#/privacy') {
       setShowPrivacy(true);
     }
     const onHashChange = () => {
-      if (window.location.hash === '#privacy' || window.location.hash === '#privacy-policy') {
+      if (window.location.hash === '#/privacy') {
         setShowPrivacy(true);
       }
     };
@@ -120,7 +107,7 @@ function App() {
       <LangContext.Provider value={{ lang, setLang, t }}>
         <PrivacyPolicy onBack={() => {
           setShowPrivacy(false);
-          window.location.hash = '';
+          window.location.hash = '#/';
         }} />
         <CookieBanner />
       </LangContext.Provider>
@@ -128,15 +115,16 @@ function App() {
   }
 
   return (
-    <LangContext.Provider value={{ lang, setLang, t, activeSection }}>
+    <>
       <div className="min-h-screen bg-bg mobile-bottom-padding">
-        {/* ═══ Accessibility: skip to main content ═══ */}
+        {/* ═══ Skip to main content ═══ */}
         <a
           href="#prodotti"
           className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[999] focus:bg-primary focus:text-bg focus:font-bold focus:px-4 focus:py-2 focus:rounded-lg focus:text-sm"
         >
           Vai al contenuto principale
         </a>
+
         <Header
           cartCount={cartCount}
           onCartClick={() => setCartOpen(true)}
@@ -144,7 +132,6 @@ function App() {
         />
 
         <main>
-          {/* ── Customer journey: cattura → mostra → spiega → fida → prova visiva → prova sociale → info → azione */}
           <Hero onExploreClick={() => document.getElementById('prodotti')?.scrollIntoView({ behavior: 'smooth' })} />
           <Products onAddToCart={addToCart} />
           <HowToOrder />
@@ -164,10 +151,9 @@ function App() {
           onUpdateQuantity={updateQuantity}
         />
 
-        {/* ═══ Cart Toast Notification ═══ */}
         <CartToast toast={cartToast} />
 
-        {/* ═══ Floating WhatsApp Button ═══ */}
+        {/* Floating WhatsApp Button */}
         <a
           href={`https://wa.me/${BUSINESS.whatsappNumber}?text=${encodeURIComponent('Ciao! Vorrei ordinare dei prodotti dal Panificio Da Sergio.')}`}
           target="_blank"
@@ -180,11 +166,103 @@ function App() {
           </svg>
         </a>
 
-        {/* ═══ Cookie Consent Banner ═══ */}
         <CookieBanner />
       </div>
+    </>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════
+// Cart Provider Wrapper
+// ═══════════════════════════════════════════════════════════
+function CartProvider({ children }) {
+  const [lang, setLang] = useState('it');
+  const t = translations[lang];
+  const [cart, setCart] = useState([]);
+  const [cartOpen, setCartOpen] = useState(false);
+  const [cartToast, setCartToast] = useState(null);
+
+  const addToCart = (product) => {
+    setCart((prev) => {
+      const existing = prev.find((item) => item.id === product.id);
+      if (existing) {
+        return prev.map((item) =>
+          item.id === product.id
+            ? { ...item, quantity: item.quantity + 1 }
+            : item
+        );
+      }
+      return [...prev, { ...product, quantity: 1 }];
+    });
+    setCartToast({ id: Date.now(), productName: product.name });
+  };
+
+  const updateQuantity = (id, quantity) => {
+    if (quantity <= 0) {
+      setCart((prev) => prev.filter((item) => item.id !== id));
+    } else {
+      setCart((prev) =>
+        prev.map((item) => (item.id === id ? { ...item, quantity } : item))
+      );
+    }
+  };
+
+  const clearCart = () => setCart([]);
+
+  const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+
+  return (
+      <LangContext.Provider value={{ lang, setLang, t }}>
+      <CartContext.Provider value={{
+        cart, addToCart, updateQuantity, clearCart, cartCount,
+        cartOpen, setCartOpen, cartToast, lang, setLang, t,
+      }}>
+        {children}
+      </CartContext.Provider>
     </LangContext.Provider>
   );
 }
 
-export default App;
+// ═══════════════════════════════════════════════════════════
+// App Root
+// ═══════════════════════════════════════════════════════════
+export default function App() {
+  return (
+    <CartProvider>
+      <HashRouter>
+        <Routes>
+          <Route path="/" element={<MainSite />} />
+          <Route path="/privacy" element={<PrivacyPolicyPage />} />
+          <Route path="/checkout" element={<CheckoutPage />} />
+          <Route path="/confirmation" element={<Confirmation />} />
+          <Route path="/admin/login" element={<AdminLogin />} />
+          <Route path="/admin" element={
+            <ProtectedRoute>
+              <AdminDashboard />
+            </ProtectedRoute>
+          } />
+        </Routes>
+      </HashRouter>
+    </CartProvider>
+  );
+}
+
+// ═══ Page wrappers ═══
+function PrivacyPolicyPage() {
+  const { lang, setLang, t } = useCart();
+  return (
+    <LangContext.Provider value={{ lang, setLang, t }}>
+      <PrivacyPolicy onBack={() => window.location.hash = '#/'} />
+      <CookieBanner />
+    </LangContext.Provider>
+  );
+}
+
+function CheckoutPage() {
+  const { lang, setLang, t, cart, clearCart } = useCart();
+  return (
+    <LangContext.Provider value={{ lang, setLang, t }}>
+      <Checkout cart={cart} onClearCart={clearCart} />
+    </LangContext.Provider>
+  );
+}

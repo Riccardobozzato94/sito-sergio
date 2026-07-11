@@ -13,14 +13,10 @@ export default function CartToast({ toast }) {
 
   useEffect(() => {
     if (!toast) return;
-
-    // Trigger enter animation
     setVisible(true);
-
-    // Auto-dismiss after 2.5 s
     const timer = setTimeout(() => setVisible(false), 2500);
     return () => clearTimeout(timer);
-  }, [toast?.id]); // re-trigger whenever a NEW toast arrives
+  }, [toast?.id]);
 
   if (!toast) return null;
 
@@ -32,9 +28,9 @@ export default function CartToast({ toast }) {
       className={`
         fixed top-[72px] left-1/2 -translate-x-1/2 z-[200]
         flex items-center gap-3
-        bg-[#1a1a1a]/95 backdrop-blur-xl
+        bg-bg-card/95 backdrop-blur-xl
         border border-green-500/30
-        text-white text-sm font-medium
+        text-text text-sm font-medium
         px-5 py-3 rounded-2xl
         shadow-2xl shadow-black/40
         transition-all duration-400 ease-out
@@ -56,7 +52,7 @@ export default function CartToast({ toast }) {
       </span>
 
       {/* Cart icon */}
-      <ShoppingBag size={15} className="text-white/40 shrink-0" />
+      <ShoppingBag size={15} className="text-text-dim shrink-0" />
     </div>
   );
 }

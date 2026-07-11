@@ -60,10 +60,10 @@ export default function Gallery() {
 
           {/* ═══ Section Title ═══ */}
           <div className="text-center mb-10 sm:mb-14">
-            <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl text-primary tracking-wide">
+            <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl text-primary tracking-tight">
               {t.gallery_title}
             </h2>
-            <p className="text-white/65 mt-4 max-w-lg mx-auto text-sm sm:text-base">
+            <p className="text-text-muted mt-4 max-w-lg mx-auto text-sm sm:text-base">
               {t.gallery_subtitle}
             </p>
           </div>
@@ -74,7 +74,7 @@ export default function Gallery() {
               <button
                 key={i}
                 onClick={() => openLightbox(i)}
-                className={`gallery-item bg-[#1a1a1a] rounded-2xl overflow-hidden border border-[#2a2725] cursor-pointer group ${
+                className={`gallery-item bg-bg-elevated rounded-2xl overflow-hidden border border-border cursor-pointer group ${
                   i === 0 ? 'col-span-2 row-span-2' : ''
                 }`}
                 aria-label={`Vedi immagine: ${img.alt}`}
@@ -89,7 +89,7 @@ export default function Gallery() {
                     height="400"
                   />
                   {/* Hover overlay */}
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-300 flex items-center justify-center">
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/50 transition-all duration-300 flex items-center justify-center">
                     <svg className="w-8 h-8 text-white/0 group-hover:text-white/80 transition-all duration-300 group-hover:scale-100 scale-75" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607zM10.5 7.5v6m3-3h-6" />
                     </svg>
@@ -104,7 +104,7 @@ export default function Gallery() {
       {/* ═══ Lightbox Modal ═══ */}
       {lightboxOpen && (
         <div
-          className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-sm flex items-center justify-center animate-fade-in"
+          className="fixed inset-0 z-[100] bg-bg/95 backdrop-blur-md flex items-center justify-center animate-fade-in"
           role="dialog"
           aria-modal="true"
           aria-label="Galleria immagini"
@@ -112,21 +112,21 @@ export default function Gallery() {
           {/* Close button */}
           <button
             onClick={closeLightbox}
-            className="absolute top-4 right-4 sm:top-6 sm:right-6 z-[101] text-white/60 hover:text-white p-2 rounded-full hover:bg-white/10 transition-all duration-200"
+            className="absolute top-4 right-4 sm:top-6 sm:right-6 z-[101] text-text-dim hover:text-text p-2 rounded-full hover:bg-white/5 transition-all duration-200"
             aria-label={t.gallery_close}
           >
             <X size={28} />
           </button>
 
           {/* Counter */}
-          <div className="absolute top-5 left-5 sm:top-6 sm:left-6 z-[101] text-white/50 text-sm">
+          <div className="absolute top-5 left-5 sm:top-6 sm:left-6 z-[101] text-text-dim text-sm">
             {currentIndex + 1} {t.gallery_of} {images.length}
           </div>
 
           {/* Previous */}
           <button
             onClick={goPrev}
-            className="absolute left-2 sm:left-6 z-[101] text-white/60 hover:text-white p-3 rounded-full hover:bg-white/10 transition-all duration-200"
+            className="absolute left-2 sm:left-6 z-[101] text-text-dim hover:text-text p-3 rounded-full hover:bg-white/5 transition-all duration-200"
             aria-label={t.gallery_prev}
           >
             <ChevronLeft size={32} />
@@ -135,7 +135,7 @@ export default function Gallery() {
           {/* Next */}
           <button
             onClick={goNext}
-            className="absolute right-2 sm:right-6 z-[101] text-white/60 hover:text-white p-3 rounded-full hover:bg-white/10 transition-all duration-200"
+            className="absolute right-2 sm:right-6 z-[101] text-text-dim hover:text-text p-3 rounded-full hover:bg-white/5 transition-all duration-200"
             aria-label={t.gallery_next}
           >
             <ChevronRight size={32} />
@@ -152,7 +152,7 @@ export default function Gallery() {
 
           {/* Caption */}
           <div className="absolute bottom-4 sm:bottom-6 left-0 right-0 text-center">
-            <p className="text-white/60 text-sm max-w-lg mx-auto px-4">
+            <p className="text-text-dim text-sm max-w-lg mx-auto px-4">
               {images[currentIndex].alt.split('—')[0].trim()}
             </p>
           </div>

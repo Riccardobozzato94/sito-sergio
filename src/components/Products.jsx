@@ -62,7 +62,7 @@ export default function Products({ onAddToCart }) {
 
   const yearsOfTradition = new Date().getFullYear() - 1977;
 
-  // Client-side search filter (runs after fetch, no extra DB call)
+  // Client-side search filter
   const searchLower = search.trim().toLowerCase();
   const filteredProducts = searchLower
     ? products.filter(
@@ -98,14 +98,14 @@ export default function Products({ onAddToCart }) {
         {/* ═══ Section Title ═══ */}
         <div className="text-center mb-10 sm:mb-14">
           <div className="ornament-divider mb-5">
-            <span className="text-white/50 text-[11px] tracking-[0.25em] uppercase whitespace-nowrap">
+            <span className="text-text-dim text-[11px] tracking-[0.25em] uppercase whitespace-nowrap">
               {yearsOfTradition} {t.products_tradition}
             </span>
           </div>
-          <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl text-primary tracking-wide">
+          <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl text-primary tracking-tight">
             {t.products_title}
           </h2>
-          <p className="text-white/65 mt-4 max-w-lg mx-auto text-sm sm:text-base">
+          <p className="text-text-muted mt-4 max-w-lg mx-auto text-sm sm:text-base">
             {t.products_subtitle}
           </p>
         </div>
@@ -115,7 +115,7 @@ export default function Products({ onAddToCart }) {
 
           {/* Search input */}
           <div className="relative w-full max-w-sm">
-            <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/35 pointer-events-none" />
+            <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-dim/60 pointer-events-none" />
             <input
               ref={searchRef}
               type="search"
@@ -123,12 +123,12 @@ export default function Products({ onAddToCart }) {
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Cerca un prodotto..."
               aria-label="Cerca prodotti"
-              className="w-full bg-white/5 border border-[#2a2725] rounded-full pl-9 pr-9 py-2.5 text-sm text-white placeholder:text-white/35 focus:outline-none focus:border-primary/50 transition-colors"
+              className="w-full bg-white/[0.04] border border-border rounded-full pl-9 pr-9 py-2.5 text-sm text-text placeholder:text-text-dim/60 focus:outline-none focus:border-primary/50 transition-colors"
             />
             {search && (
               <button
                 onClick={() => setSearch('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-white/35 hover:text-white transition-colors"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-text-dim/60 hover:text-text transition-colors"
                 aria-label="Cancella ricerca"
               >
                 <X size={14} />
@@ -142,10 +142,10 @@ export default function Products({ onAddToCart }) {
               <button
                 key={key}
                 onClick={() => handleCategoryChange(key)}
-                className={`tab-pill px-5 sm:px-6 py-2.5 rounded-full text-sm font-medium border border-[#2a2725] ${
+                className={`tab-pill px-5 sm:px-6 py-2.5 rounded-full text-sm font-medium border ${
                   activeCategory === key
                     ? 'active'
-                    : 'text-text-muted bg-transparent hover:border-primary/30'
+                    : 'text-text-muted bg-transparent border-border hover:border-primary/30'
                 }`}
               >
                 {categoryLabels[key]}
@@ -163,7 +163,7 @@ export default function Products({ onAddToCart }) {
 
         {/* ═══ Search result count ═══ */}
         {search && (
-          <p className="text-center text-white/45 text-sm mb-6">
+          <p className="text-center text-text-dim text-sm mb-6">
             {filteredProducts.length === 0
               ? 'Nessun prodotto trovato'
               : `${filteredProducts.length} risultat${filteredProducts.length === 1 ? 'o' : 'i'} per "${search}"`}
@@ -186,10 +186,10 @@ export default function Products({ onAddToCart }) {
         {/* ═══ Empty State ═══ */}
         {filteredProducts.length === 0 && !error && (
           <div className="text-center py-20">
-            <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className="w-16 h-16 bg-white/[0.04] rounded-full flex items-center justify-center mx-auto mb-4">
               <ShoppingCart size={28} className="text-text-dim" />
             </div>
-            <p className="text-white/65 text-lg">
+            <p className="text-text-muted text-lg">
               {search ? `Nessun risultato per "${search}"` : t.products_empty}
             </p>
             {search && (

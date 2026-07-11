@@ -1,11 +1,10 @@
 // ═══════════════════════════════════════════════════════════
-// Supabase Client — Website Integration
+// Supabase Client — Website Integration (optional)
 // Panificio Da Sergio
 // ═══════════════════════════════════════════════════════════
-// Used by the website to:
-//   1. Create orders (instead of just WhatsApp)
-//   2. Check product availability
-//   3. Search products
+// If VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY are set in .env,
+// the site will use Supabase for product data and orders.
+// Otherwise, it gracefully falls back to static/empty data.
 // ═══════════════════════════════════════════════════════════
 
 import { createClient } from '@supabase/supabase-js';
@@ -13,21 +12,54 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error(
-    'Missing Supabase env vars. Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to .env'
+const isConfigured = Boolean(supabaseUrl && supabaseAnonKey);
+
+if (!isConfigured) {
+  console.warn(
+    '[Supabase] Missing VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY. ' +
+    'The site will run in offline/static mode. ' +
+    'Set them in .env to enable the full CRM integration.'
   );
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    persistSession: false, // No user auth needed for website (anonymous orders)
-    autoRefreshToken: false,
-  },
-});
+// Dummy client that fails gracefully
+function createDummyClient() {
+  return {
+    from: () => ({
+      select: () => ({
+        eq: () => ({
+          order: () => Promise.resolve({ data: [], error: null }),
+          single: () => Promise.resolve({ data: null, error: null }),
+        }),
+        single: () => Promise.resolve({ data: null, error: null }),
+      }),
+      insert: () => ({
+        select: () => ({
+          single: () => Promise.resolve({ data: null, error: null }),
+        }),
+      }),
+    }),
+    channel: () => ({
+      on: () => ({
+        subscribe: () => ({ unsubscribe: () => {} }),
+      }),
+    }),
+    removeChannel: () => {},
+    rpc: () => Promise.resolve({ data: null, error: null }),
+  };
+}
+
+export const supabase = isConfigured
+  ? createClient(supabaseUrl, supabaseAnonKey, {
+      auth: {
+        persistSession: false,
+        autoRefreshToken: false,
+      },
+    })
+  : createDummyClient();
 
 // ═══════════════════════════════════════════════════════════
-// Database Types (auto-generated — kept minimal here)
+// Database Types
 // ═══════════════════════════════════════════════════════════
 
 export type ProductCategory = 'pane' | 'dolci' | 'specialita' | 'salato' | 'stagionale';
@@ -61,82 +93,12 @@ export interface Order {
 }
 
 // ═══════════════════════════════════════════════════════════
-// Helper: Create Order from Cart
-// ═══════════════════════════════════════════════════════════
-
-export interface CartItem {
-  product_id: number;
-  quantity: number;
-  unit_price: number;
-}
-
-export interface OrderInput {
-  customer: {
-    name: string;
-    phone: string;
-    email: string;
-  };
-  deliveryMethod: DeliveryMethod;
-  pickupTime?: string;
-  notes?: string;
-  items: CartItem[];
-}
-
-export async function createOrder(input: OrderInput) {
-  const { data: customer, error: customerError } = await supabase
-    .from('customers')
-    .insert({
-      name: input.customer.name,
-      phone: input.customer.phone,
-      email: input.customer.email || null,
-    })
-    .select('id')
-    .single();
-
-  if (customerError) throw customerError;
-
-  const subtotal = input.items.reduce((sum, item) => sum + item.quantity * item.unit_price, 0);
-  const shipping = input.deliveryMethod === 'courier' ? 5.90 : 0;
-  const total = subtotal + shipping;
-
-  const { data: order, error: orderError } = await supabase
-    .from('orders')
-    .insert({
-      customer_id: customer.id,
-      status: 'pending',
-      delivery_method: input.deliveryMethod,
-      subtotal,
-      shipping,
-      total,
-      pickup_time: input.pickupTime || null,
-      notes: input.notes || null,
-    })
-    .select('id')
-    .single();
-
-  if (orderError) throw orderError;
-
-  const orderItems = input.items.map((item) => ({
-    order_id: order.id,
-    product_id: item.product_id,
-    quantity: item.quantity,
-    unit_price: item.unit_price,
-  }));
-
-  const { error: itemsError } = await supabase
-    .from('order_items')
-    .insert(orderItems);
-
-  if (itemsError) throw itemsError;
-
-  return { orderId: order.id, customerId: customer.id };
-}
-
-// ═══════════════════════════════════════════════════════════
 // Helper: Fetch Available Products
 // ═══════════════════════════════════════════════════════════
 
 export async function getProducts(category?: ProductCategory) {
+  if (!isConfigured) return [];
+
   let query = supabase
     .from('products')
     .select('id, name, slug, description, category, price, unit, image_url, is_available, stock_weight_kg')
@@ -148,7 +110,10 @@ export async function getProducts(category?: ProductCategory) {
   }
 
   const { data, error } = await query;
-  if (error) throw error;
+  if (error) {
+    console.warn('[Supabase] Error fetching products:', error.message);
+    return [];
+  }
   return data as Product[];
 }
 
@@ -157,9 +122,13 @@ export async function getProducts(category?: ProductCategory) {
 // ═══════════════════════════════════════════════════════════
 
 export async function searchProducts(query: string) {
+  if (!isConfigured) return [];
   const { data, error } = await supabase.rpc('search_products', {
     p_query: query,
   });
-  if (error) throw error;
+  if (error) {
+    console.warn('[Supabase] Error searching products:', error.message);
+    return [];
+  }
   return data;
 }

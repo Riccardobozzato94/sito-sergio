@@ -102,6 +102,12 @@ export const translations = {
     contacts_write: "Scrivici su WhatsApp →",
     contacts_map: "Dove Siamo",
     contacts_maps_link: "Apri in Google Maps →",
+    contacts_form_title: "Scrivici un Messaggio",
+    contacts_form_message: "Il tuo messaggio...",
+    contacts_form_btn: "Invia Messaggio",
+
+    // ── Product Modal ──
+    allergen_title: "Allergeni",
 
     // ── Footer ──
     footer_contacts: "CONTATTI",
@@ -121,6 +127,7 @@ export const translations = {
     cart_empty_text: "Forza, riempilo di bontà!",
     cart_name_placeholder: "Il tuo nome",
     cart_phone_placeholder: "Numero di telefono",
+    cart_email_placeholder: "Indirizzo email (obbligatoria)",
     cart_pickup_label: "Quando ritiri?",
     cart_pickup_morning: "Mattina (8:00–12:00)",
     cart_pickup_afternoon: "Pomeriggio (14:00–19:00)",
@@ -128,12 +135,91 @@ export const translations = {
     cart_notes_placeholder: "Allergie, preferenze, quantità speciali — diteci tutto, Sergio legge ogni nota",
     cart_total: "Totale Stimato",
     cart_whatsapp_btn: "Invia Ordine su WhatsApp",
+    cart_stripe_btn: "Procedi al Pagamento",
+    cart_or: "oppure",
     cart_alert_required: "Servono nome e telefono per mandare l'ordine a Sergio. Due secondi e siete a posto!",
     cart_added_toast: "✓ Aggiunto al carrello!",
+    cart_field_required: "Campo obbligatorio",
+    cart_email_required: "Email obbligatoria",
+    cart_email_invalid: "Inserisci un'email valida",
+    cart_delivery_label: "Come vuoi ricevere?",
+    cart_delivery_pickup: "Ritiro",
+    cart_delivery_courier: "Spedizione",
+    cart_delivery_reservation: "Prenota",
+    cart_courier_title: "Spedizione con corriere espresso",
+    cart_courier_info: "Consegniamo con <strong>Bartolini / GLS / SDA</strong>. Tempi: 24-48h in tutta Italia. Costo: <strong>5,90€</strong>. Gratuita per ordini sopra i 50€.",
+    cart_reservation_title: "Prenotazione prodotto",
+    cart_reservation_info: "Se il prodotto che desideri non è disponibile subito, lo prepariamo su ordinazione. Ti contattiamo via WhatsApp per confermare la disponibilità.",
+    cart_send: "Inviato!",
+    cart_order_whatsapp: "Ordina via WhatsApp",
+    cart_close: "Chiudi carrello",
+    cart_decrease: "Diminuisci",
+    cart_increase: "Aumenta",
+    cart_shipping_incl: "incl. spedizione",
+
+    // ── Cookie Banner ──
+    cookie_title: "Utilizziamo i cookie",
+    cookie_description: "Questo sito utilizza cookie tecnici (necessari) e, solo col tuo consenso, cookie analitici e di marketing per migliorare l'esperienza e analizzare il traffico.",
+    cookie_info_link: "Maggiori informazioni",
+    cookie_accept_all: "Accetta tutti",
+    cookie_necessary_only: "Solo necessari",
+    cookie_customize: "Personalizza",
+    cookie_tech_title: "Cookie Tecnici",
+    cookie_tech_desc: "Necessari per il funzionamento del sito",
+    cookie_tech_status: "Sempre attivi",
+    cookie_analytics_title: "Google Analytics",
+    cookie_analytics_desc: "Statistiche di visita anonime",
+    cookie_marketing_title: "Meta Pixel",
+    cookie_marketing_desc: "Misurazioni pubblicità e remarketing",
+    cookie_close: "Chiudi",
+
+    // ── Search ──
+    search_placeholder: "Cerca un prodotto...",
+    search_aria_label: "Cerca prodotti",
+    search_clear: "Cancella ricerca",
+    search_no_results: "Nessun prodotto trovato",
+    search_results_count: "risultat",
+    search_no_results_for: "Nessun risultato per",
+    search_clear_all: "Cancella ricerca",
+
+    // ── Products loading ──
+    products_loading: "Caricamento prodotti...",
+    products_error: "Errore nel caricamento dei prodotti",
+
+    // ── Product Card ──
+    product_of_day: "Del Giorno",
+    product_share_whatsapp: "Condividi su WhatsApp",
+    product_share_label: "Condividi",
+
+    // ── Step labels ──
+    step_label: "Step",
+
+    // ── Header ──
+    header_back_home: "Torna alla home",
+    header_cart: "Carrello",
+    header_menu: "Menu",
+
+    // ── Allergens ──
+    allergen_glutine: "Glutine",
+    allergen_latte: "Latte",
+    allergen_uova: "Uova",
+    allergen_frutta_guscio: "Frutta s.guscio",
+    allergen_arachidi: "Arachidi",
+    allergen_sesamo: "Sesamo",
+    allergen_soia: "Soia",
+    allergen_sedano: "Sedano",
 
     // ── Hours ──
     hours_section_title: "Orari",
     closed: "Chiuso",
+    hours_view_maps: "Apri in Google Maps →",
+    day_mon: "Lunedì",
+    day_tue: "Martedì",
+    day_wed: "Mercoledì",
+    day_thu: "Giovedì",
+    day_fri: "Venerdì",
+    day_sat: "Sabato",
+    day_sun: "Domenica",
 
     // ── Product categories (SEO keywords) ──
     cat_pane: "pane",
@@ -234,6 +320,12 @@ export const translations = {
     contacts_write: "Message us on WhatsApp →",
     contacts_map: "Find Us",
     contacts_maps_link: "Open in Google Maps →",
+    contacts_form_title: "Send us a Message",
+    contacts_form_message: "Your message...",
+    contacts_form_btn: "Send Message",
+
+    // ── Product Modal ──
+    allergen_title: "Allergens",
 
     // ── Footer ──
     footer_contacts: "CONTACTS",
@@ -253,6 +345,7 @@ export const translations = {
     cart_empty_text: "Go on, fill it with goodness!",
     cart_name_placeholder: "Your name",
     cart_phone_placeholder: "Phone number",
+    cart_email_placeholder: "Email address (required)",
     cart_pickup_label: "When will you pick up?",
     cart_pickup_morning: "Morning (8:00–12:00)",
     cart_pickup_afternoon: "Afternoon (14:00–19:00)",
@@ -260,16 +353,95 @@ export const translations = {
     cart_notes_placeholder: "Allergies, preferences, special quantities — tell us everything, Sergio reads every note",
     cart_total: "Estimated Total",
     cart_whatsapp_btn: "Send Order via WhatsApp",
+    cart_stripe_btn: "Proceed to Payment",
+    cart_or: "or",
     cart_alert_required: "We just need your name and phone to send the order to Sergio. Two seconds, that's all!",
     cart_added_toast: "✓ Added to cart!",
+    cart_field_required: "Required field",
+    cart_email_required: "Email required",
+    cart_email_invalid: "Please enter a valid email",
+    cart_delivery_label: "How would you like to receive it?",
+    cart_delivery_pickup: "Pickup",
+    cart_delivery_courier: "Shipping",
+    cart_delivery_reservation: "Pre-order",
+    cart_courier_title: "Express courier shipping",
+    cart_courier_info: "We deliver with <strong>Bartolini / GLS / SDA</strong>. Times: 24-48h across Italy. Cost: <strong>€5.90</strong>. Free for orders over €50.",
+    cart_reservation_title: "Product pre-order",
+    cart_reservation_info: "If the product you want isn't available right away, we'll prepare it on order. We'll contact you via WhatsApp to confirm availability.",
+    cart_send: "Sent!",
+    cart_order_whatsapp: "Order via WhatsApp",
+    cart_close: "Close cart",
+    cart_decrease: "Decrease",
+    cart_increase: "Increase",
+    cart_shipping_incl: "incl. shipping",
+
+    // ── Cookie Banner ──
+    cookie_title: "We use cookies",
+    cookie_description: "This site uses technical (necessary) cookies and, only with your consent, analytics and marketing cookies to improve the experience and analyze traffic.",
+    cookie_info_link: "More information",
+    cookie_accept_all: "Accept all",
+    cookie_necessary_only: "Necessary only",
+    cookie_customize: "Customize",
+    cookie_tech_title: "Technical Cookies",
+    cookie_tech_desc: "Required for site functionality",
+    cookie_tech_status: "Always active",
+    cookie_analytics_title: "Google Analytics",
+    cookie_analytics_desc: "Anonymous visit statistics",
+    cookie_marketing_title: "Meta Pixel",
+    cookie_marketing_desc: "Ad measurement and remarketing",
+    cookie_close: "Close",
+
+    // ── Search ──
+    search_placeholder: "Search a product...",
+    search_aria_label: "Search products",
+    search_clear: "Clear search",
+    search_no_results: "No products found",
+    search_results_count: "result",
+    search_no_results_for: "No results for",
+    search_clear_all: "Clear search",
+
+    // ── Products loading ──
+    products_loading: "Loading products...",
+    products_error: "Error loading products",
+
+    // ── Product Card ──
+    product_of_day: "Of the Day",
+    product_share_whatsapp: "Share on WhatsApp",
+    product_share_label: "Share",
+
+    // ── Step labels ──
+    step_label: "Step",
+
+    // ── Header ──
+    header_back_home: "Back to home",
+    header_cart: "Cart",
+    header_menu: "Menu",
+
+    // ── Allergens ──
+    allergen_glutine: "Gluten",
+    allergen_latte: "Milk",
+    allergen_uova: "Eggs",
+    allergen_frutta_guscio: "Tree Nuts",
+    allergen_arachidi: "Peanuts",
+    allergen_sesamo: "Sesame",
+    allergen_soia: "Soy",
+    allergen_sedano: "Celery",
 
     // ── Hours ──
     hours_section_title: "Hours",
     closed: "Closed",
+    hours_view_maps: "Open in Google Maps →",
+    day_mon: "Monday",
+    day_tue: "Tuesday",
+    day_wed: "Wednesday",
+    day_thu: "Thursday",
+    day_fri: "Friday",
+    day_sat: "Saturday",
+    day_sun: "Sunday",
 
     // ── Product categories ──
-    cat_pane: "pane",
-    cat_dolci: "dolci",
-    cat_specialita: "specialita",
+    cat_pane: "bread",
+    cat_dolci: "sweets",
+    cat_specialita: "specialties",
   },
 };

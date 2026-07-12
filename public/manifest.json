@@ -1,0 +1,26 @@
+{
+  "name": "Panificio Da Sergio",
+  "short_name": "Da Sergio",
+  "description": "Pane artigianale e dolci tradizionali a Chioggia dal 1977",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1a1410",
+  "theme_color": "#1a1410",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    }
+  ],
+  "categories": ["food", "business"],
+  "lang": "it",
+  "dir": "ltr"
+}

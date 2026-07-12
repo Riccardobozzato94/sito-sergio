@@ -1,10 +1,27 @@
 import { MapPin, Phone, Mail } from 'lucide-react';
-import { BUSINESS, SOCIAL, HOURS } from '../lib/config';
-import { useLang } from '../App';
+import { BUSINESS as STATIC_BUSINESS, SOCIAL as STATIC_SOCIAL, HOURS as STATIC_HOURS } from '../lib/config';
+import { useLang, useSettings } from '../App';
+
+// Map Italian day names from config to translation keys
+const DAY_KEY_MAP = {
+  'Lunedì': 'day_mon',
+  'Martedì': 'day_tue',
+  'Mercoledì': 'day_wed',
+  'Giovedì': 'day_thu',
+  'Venerdì': 'day_fri',
+  'Sabato': 'day_sat',
+  'Domenica': 'day_sun',
+};
 
 export default function Footer() {
   const { t } = useLang();
+  const { settings } = useSettings();
   const year = new Date().getFullYear();
+
+  // Dynamic settings with static fallback
+  const BUSINESS = settings?.business || STATIC_BUSINESS;
+  const SOCIAL = settings?.social || STATIC_SOCIAL;
+  const HOURS = settings?.hours || STATIC_HOURS;
 
   return (
     <footer className="bg-[#15100c] border-t border-white/[0.04]">
@@ -102,14 +119,18 @@ export default function Footer() {
           <div>
             <h3 className="font-heading text-primary text-sm tracking-[0.2em] uppercase mb-5">{t.footer_hours}</h3>
             <div className="space-y-2 text-sm">
-              {HOURS.map((h) => (
-                <div key={h.day} className="flex justify-between text-text-muted">
-                  <span className="text-text">{h.day.substring(0, 3)}</span>
-                  <span className={h.hours === 'Chiuso' ? 'text-primary font-medium' : ''}>
-                    {h.hours === 'Chiuso' ? t.closed : h.hours}
-                  </span>
-                </div>
-              ))}
+              {HOURS.map((h) => {
+                const dayKey = DAY_KEY_MAP[h.day];
+                const dayName = dayKey ? t[dayKey]?.substring(0, 3) : h.day.substring(0, 3);
+                return (
+                  <div key={h.day} className="flex justify-between text-text-muted">
+                    <span className="text-text">{dayName}</span>
+                    <span className={h.hours === 'Chiuso' ? 'text-primary font-medium' : ''}>
+                      {h.hours === 'Chiuso' ? t.closed : h.hours}
+                    </span>
+                  </div>
+                );
+              })}
             </div>
           </div>
 

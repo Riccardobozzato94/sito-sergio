@@ -1,6 +1,7 @@
-import { useState, createContext, useContext, useEffect, useCallback } from 'react';
+import { useState, createContext, useContext, useEffect, useCallback, lazy, Suspense } from 'react';
 import { HashRouter, Routes, Route } from 'react-router-dom';
 import { LANGUAGES, translations } from './lib/i18n';
+import { fetchSiteContent, fetchSiteSettings, mergeTranslations, mergeSettings } from './lib/content';
 import Header from './components/Header';
 import Hero from './components/Hero';
 import HowToOrder from './components/HowToOrder';
@@ -16,11 +17,13 @@ import CartToast from './components/CartToast';
 import PrivacyPolicy from './components/PrivacyPolicy';
 import CookieBanner from './components/CookieBanner';
 import ProtectedRoute from './components/ProtectedRoute';
-import AdminLogin from './pages/AdminLogin';
-import AdminDashboard from './pages/AdminDashboard';
 import Checkout from './pages/Checkout';
 import Confirmation from './pages/Confirmation';
 import { BUSINESS } from './lib/config';
+
+// Lazy-loaded admin pages (not needed for public visitors)
+const AdminLogin = lazy(() => import('./pages/AdminLogin'));
+const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
 
 // ═══════════════════════════════════════════════════════════
 // Cart Context — shared between main site and checkout
@@ -38,6 +41,15 @@ export const LangContext = createContext();
 
 export function useLang() {
   return useContext(LangContext);
+}
+
+// ═══════════════════════════════════════════════════════════
+// Settings Context — dynamic config from Supabase
+// ═══════════════════════════════════════════════════════════
+export const SettingsContext = createContext();
+
+export function useSettings() {
+  return useContext(SettingsContext);
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -177,10 +189,59 @@ function MainSite() {
 // ═══════════════════════════════════════════════════════════
 function CartProvider({ children }) {
   const [lang, setLang] = useState('it');
-  const t = translations[lang];
-  const [cart, setCart] = useState([]);
+  const [contentRows, setContentRows] = useState(null);
+  const [settingsRows, setSettingsRows] = useState(null);
+  const [contentLoaded, setContentLoaded] = useState(false);
+
+  // Dynamic translations: merge static defaults with Supabase content
+  const t = contentRows ? mergeTranslations(lang, contentRows) : translations[lang];
+  const settings = settingsRows ? mergeSettings(settingsRows) : null;
+
+  // Update HTML lang attribute when language changes
+  useEffect(() => {
+    document.documentElement.lang = lang;
+  }, [lang]);
+
+  // ── Load dynamic content on mount ──
+  useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      try {
+        const [content, settings] = await Promise.all([
+          fetchSiteContent(),
+          fetchSiteSettings(),
+        ]);
+        if (!cancelled) {
+          setContentRows(content);
+          setSettingsRows(settings);
+          setContentLoaded(true);
+        }
+      } catch (err) {
+        console.warn('Dynamic content load failed, using defaults:', err.message);
+        if (!cancelled) {
+          setContentLoaded(true);
+        }
+      }
+    }
+    load();
+    return () => { cancelled = true; };
+  }, []);
+
+  const [cart, setCart] = useState(() => {
+    try {
+      const saved = localStorage.getItem('panificio-cart');
+      return saved ? JSON.parse(saved) : [];
+    } catch { return []; }
+  });
   const [cartOpen, setCartOpen] = useState(false);
   const [cartToast, setCartToast] = useState(null);
+
+  // Persist cart to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem('panificio-cart', JSON.stringify(cart));
+    } catch { /* storage full */ }
+  }, [cart]);
 
   const addToCart = (product) => {
     setCart((prev) => {
@@ -211,15 +272,20 @@ function CartProvider({ children }) {
 
   const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
+  const contextValue = {
+    cart, addToCart, updateQuantity, clearCart, cartCount,
+    cartOpen, setCartOpen, cartToast, lang, setLang, t,
+    contentLoaded, settings, contentRows,
+  };
+
   return (
+    <SettingsContext.Provider value={{ settings, contentLoaded, settingsRows }}>
       <LangContext.Provider value={{ lang, setLang, t }}>
-      <CartContext.Provider value={{
-        cart, addToCart, updateQuantity, clearCart, cartCount,
-        cartOpen, setCartOpen, cartToast, lang, setLang, t,
-      }}>
-        {children}
-      </CartContext.Provider>
-    </LangContext.Provider>
+        <CartContext.Provider value={contextValue}>
+          {children}
+        </CartContext.Provider>
+      </LangContext.Provider>
+    </SettingsContext.Provider>
   );
 }
 
@@ -230,18 +296,24 @@ export default function App() {
   return (
     <CartProvider>
       <HashRouter>
-        <Routes>
-          <Route path="/" element={<MainSite />} />
-          <Route path="/privacy" element={<PrivacyPolicyPage />} />
-          <Route path="/checkout" element={<CheckoutPage />} />
-          <Route path="/confirmation" element={<Confirmation />} />
-          <Route path="/admin/login" element={<AdminLogin />} />
-          <Route path="/admin" element={
-            <ProtectedRoute>
-              <AdminDashboard />
-            </ProtectedRoute>
-          } />
-        </Routes>
+        <Suspense fallback={
+          <div className="min-h-screen bg-bg flex items-center justify-center">
+            <div className="text-text-dim text-sm">Caricamento...</div>
+          </div>
+        }>
+          <Routes>
+            <Route path="/" element={<MainSite />} />
+            <Route path="/privacy" element={<PrivacyPolicyPage />} />
+            <Route path="/checkout" element={<CheckoutPage />} />
+            <Route path="/confirmation" element={<Confirmation />} />
+            <Route path="/admin/login" element={<AdminLogin />} />
+            <Route path="/admin" element={
+              <ProtectedRoute>
+                <AdminDashboard />
+              </ProtectedRoute>
+            } />
+          </Routes>
+        </Suspense>
       </HashRouter>
     </CartProvider>
   );

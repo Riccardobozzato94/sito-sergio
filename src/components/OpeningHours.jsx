@@ -1,9 +1,23 @@
 import { Clock } from 'lucide-react';
-import { HOURS, BUSINESS } from '../lib/config';
-import { useLang } from '../App';
+import { HOURS as STATIC_HOURS, BUSINESS as STATIC_BUSINESS } from '../lib/config';
+import { useLang, useSettings } from '../App';
+
+// Map Italian day names from config to translation keys
+const DAY_KEY_MAP = {
+  'Lunedì': 'day_mon',
+  'Martedì': 'day_tue',
+  'Mercoledì': 'day_wed',
+  'Giovedì': 'day_thu',
+  'Venerdì': 'day_fri',
+  'Sabato': 'day_sat',
+  'Domenica': 'day_sun',
+};
 
 export default function OpeningHours() {
   const { t } = useLang();
+  const { settings } = useSettings();
+  const HOURS = settings?.hours || STATIC_HOURS;
+  const BUSINESS = settings?.business || STATIC_BUSINESS;
 
   const todayIndex = new Date().getDay();
   // JS getDay(): 0=Sunday, 1=Monday... Our HOURS: 0=Lunedì(Monday), 6=Domenica(Sunday)
@@ -47,7 +61,7 @@ export default function OpeningHours() {
                         </span>
                       )}
                       <span className={`text-sm ${isToday ? 'text-text font-semibold' : 'text-text-muted'}`}>
-                        {h.day}
+                        {t[DAY_KEY_MAP[h.day]] || h.day}
                       </span>
                     </div>
                     <span className={`text-sm font-medium ${
@@ -98,7 +112,7 @@ export default function OpeningHours() {
                   rel="noopener noreferrer"
                   className="text-primary text-sm mt-2 inline-block hover:underline"
                 >
-                  Vedi su Google Maps →
+                  {t.hours_view_maps}
                 </a>
               </div>
             </div>

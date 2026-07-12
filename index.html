@@ -22,6 +22,7 @@
     <!-- Open Graph (Facebook, WhatsApp, LinkedIn) -->
     <meta property="og:type" content="website" />
     <meta property="og:locale" content="it_IT" />
+    <meta property="og:locale:alternate" content="en_US" />
     <meta property="og:site_name" content="Panificio Da Sergio" />
     <meta property="og:title" content="Panificio Da Sergio — Tradizione con Passione dal 1977" />
     <meta property="og:description" content="Pane fresco, biscotti artigianali e dolci tradizionali veneziani a Chioggia. Dal 1977 portiamo il sapore autentico dell'artigianalità sulle vostre tavole." />
@@ -30,11 +31,6 @@
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta property="og:image:alt" content="Panificio Da Sergio — Prodotti artigianali a Chioggia" />
-
-    <!-- English Open Graph alternate -->
-    <meta property="og:locale:alternate" content="en_US" />
-    <meta property="og:title" content="Panificio Da Sergio — Artisan Bakery in Chioggia Since 1977" />
-    <meta property="og:description" content="Fresh bread, artisan cookies and traditional Venetian sweets in Chioggia. Since 1977, authentic craftsmanship on your tables." />
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
@@ -62,6 +58,9 @@
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json" />
 
     <!-- JSON-LD Structured Data: LocalBusiness / Bakery -->
     <script type="application/ld+json">
@@ -102,8 +101,8 @@
       ],
       "aggregateRating": {
         "@type": "AggregateRating",
-        "ratingValue": "4.8",
-        "reviewCount": "50",
+        "ratingValue": "4.9",
+        "reviewCount": "8",
         "bestRating": "5",
         "worstRating": "1"
       },
@@ -182,6 +181,15 @@
     These only activate after user cookie consent via CookieBanner.
     ═══════════════════════════════════════════════════════════
     -->
+
+    <!-- Service Worker Registration -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js').catch(() => {});
+        });
+      }
+    </script>
 
     <!-- Google Analytics (gtag.js) -->
     <!--

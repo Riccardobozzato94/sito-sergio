@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { ShoppingCart, Loader2, Search, X } from 'lucide-react';
 import ProductCard from './ProductCard';
+import ProductModal from './ProductModal';
 import { getProducts, supabase } from '../lib/supabase/client';
 import { useLang } from '../App';
 
@@ -11,6 +12,7 @@ export default function Products({ onAddToCart }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [search, setSearch] = useState('');
+  const [selectedProduct, setSelectedProduct] = useState(null);
   const searchRef = useRef(null);
 
   // Fetch products from Supabase on mount and when category changes
@@ -24,7 +26,7 @@ export default function Products({ onAddToCart }) {
         setProducts(data || []);
       } catch (err) {
         console.error('Error fetching products:', err);
-        setError('Errore nel caricamento dei prodotti');
+        setError(t.products_error);
       } finally {
         setLoading(false);
       }
@@ -121,15 +123,15 @@ export default function Products({ onAddToCart }) {
               type="search"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Cerca un prodotto..."
-              aria-label="Cerca prodotti"
+              placeholder={t.search_placeholder}
+              aria-label={t.search_aria_label}
               className="w-full bg-white/[0.04] border border-border rounded-full pl-9 pr-9 py-2.5 text-sm text-text placeholder:text-text-dim/60 focus:outline-none focus:border-primary/50 transition-colors"
             />
             {search && (
               <button
                 onClick={() => setSearch('')}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-text-dim/60 hover:text-text transition-colors"
-                aria-label="Cancella ricerca"
+                aria-label={t.search_clear}
               >
                 <X size={14} />
               </button>
@@ -165,8 +167,8 @@ export default function Products({ onAddToCart }) {
         {search && (
           <p className="text-center text-text-dim text-sm mb-6">
             {filteredProducts.length === 0
-              ? 'Nessun prodotto trovato'
-              : `${filteredProducts.length} risultat${filteredProducts.length === 1 ? 'o' : 'i'} per "${search}"`}
+              ? t.search_no_results
+              : `${filteredProducts.length} ${t.search_results_count}${filteredProducts.length === 1 ? 'o' : 'i'} per "${search}"`}
           </p>
         )}
 
@@ -178,7 +180,7 @@ export default function Products({ onAddToCart }) {
               className="animate-fade-in-up"
               style={{ animationDelay: `${index * 0.08}s` }}
             >
-              <ProductCard product={product} onAdd={onAddToCart} />
+              <ProductCard product={product} onAdd={onAddToCart} onClick={() => setSelectedProduct(product)} />
             </div>
           ))}
         </div>
@@ -190,16 +192,23 @@ export default function Products({ onAddToCart }) {
               <ShoppingCart size={28} className="text-text-dim" />
             </div>
             <p className="text-text-muted text-lg">
-              {search ? `Nessun risultato per "${search}"` : t.products_empty}
+              {search ? `${t.search_no_results_for} "${search}"` : t.products_empty}
             </p>
             {search && (
               <button onClick={() => setSearch('')} className="mt-3 text-primary text-sm hover:underline">
-                Cancella ricerca
+                {t.search_clear_all}
               </button>
             )}
           </div>
         )}
       </div>
+
+      {/* Product Detail Modal */}
+      <ProductModal
+        product={selectedProduct}
+        onClose={() => setSelectedProduct(null)}
+        onAddToCart={onAddToCart}
+      />
     </section>
   );
 }

@@ -1,11 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useLang } from '../App';
+import useFocusTrap from '../lib/useFocusTrap';
 
 export default function Gallery() {
   const { t } = useLang();
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const lightboxFocusTrapRef = useFocusTrap(lightboxOpen);
 
   const images = [
     { src: '/images/gallery-1.jpg', alt: 'Prodotti artigianali — Panificio Da Sergio Chioggia' },
@@ -104,10 +106,12 @@ export default function Gallery() {
       {/* ═══ Lightbox Modal ═══ */}
       {lightboxOpen && (
         <div
+          ref={lightboxFocusTrapRef}
           className="fixed inset-0 z-[100] bg-bg/95 backdrop-blur-md flex items-center justify-center animate-fade-in"
           role="dialog"
           aria-modal="true"
           aria-label="Galleria immagini"
+          tabIndex={-1}
         >
           {/* Close button */}
           <button

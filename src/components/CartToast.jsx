@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Check, ShoppingBag } from 'lucide-react';
+import { useLang } from '../App';
 
 /**
  * CartToast — notification bar that slides in from the top when a product
@@ -9,6 +10,7 @@ import { Check, ShoppingBag } from 'lucide-react';
  *   toast: { id, productName } | null   — set by App.jsx addToCart()
  */
 export default function CartToast({ toast }) {
+  const { t } = useLang();
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -48,7 +50,7 @@ export default function CartToast({ toast }) {
       {/* Message */}
       <span className="max-w-[200px] truncate">
         <span className="text-green-400 font-semibold">{toast.productName}</span>
-        {' '}aggiunto al carrello
+        {' '}{t.cart_added_toast.replace('✓ ', '')}
       </span>
 
       {/* Cart icon */}

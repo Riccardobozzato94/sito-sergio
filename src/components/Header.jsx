@@ -1,13 +1,17 @@
 import { useState, useEffect } from 'react';
 import { Menu, ShoppingBag, X } from 'lucide-react';
-import { BUSINESS } from '../lib/config';
+import { BUSINESS as STATIC_BUSINESS } from '../lib/config';
 import { LANGUAGES } from '../lib/i18n';
-import { useLang } from '../App';
+import { useLang, useSettings } from '../App';
+import useFocusTrap from '../lib/useFocusTrap';
 
 export default function Header({ cartCount, onCartClick, activeSection }) {
   const { t, lang, setLang } = useLang();
+  const { settings } = useSettings();
+  const BUSINESS = settings?.business || STATIC_BUSINESS;
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const menuFocusTrapRef = useFocusTrap(menuOpen);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 30);
@@ -53,7 +57,7 @@ export default function Header({ cartCount, onCartClick, activeSection }) {
             <button
               className="text-primary/80 hover:text-primary p-2 rounded-lg transition-all duration-200 hover:bg-white/[0.04] lg:hidden"
               onClick={() => setMenuOpen(!menuOpen)}
-              aria-label="Menu"
+              aria-label={t.header_menu}
             >
               {menuOpen ? <X size={22} /> : <Menu size={22} />}
             </button>
@@ -64,15 +68,15 @@ export default function Header({ cartCount, onCartClick, activeSection }) {
             <button
               onClick={() => scrollToSection('home')}
               className="text-center group"
-              aria-label="Torna alla home"
+              aria-label={t.header_back_home}
             >
               <div className="flex flex-col items-center leading-none">
                 <span className="font-heading text-lg sm:text-xl lg:text-2xl text-primary tracking-[0.12em] group-hover:text-primary-light transition-colors duration-300">
                   PANIFICIO DA SERGIO
                 </span>
-                <span className={`hidden sm:block text-[10px] tracking-[0.25em] uppercase text-text-dim mt-1 transition-opacity duration-300 ${scrolled ? 'opacity-60' : 'opacity-100'}`}>
-                  {t.hero_slogan} · Chioggia
-                </span>
+                  <span className={`hidden sm:block text-[10px] tracking-[0.25em] uppercase text-text-dim mt-1 transition-opacity duration-300 ${scrolled ? 'opacity-60' : 'opacity-100'}`}>
+                    {t.hero_slogan} · {t.nav_contatti === 'Contatti' || t.nav_contatti === 'Contact' ? 'Chioggia' : ''}
+                  </span>
               </div>
             </button>
           </div>
@@ -101,7 +105,7 @@ export default function Header({ cartCount, onCartClick, activeSection }) {
             <button
               className="relative text-primary/80 hover:text-primary p-2 rounded-lg transition-all duration-200 hover:bg-white/[0.04]"
               onClick={onCartClick}
-              aria-label="Carrello"
+              aria-label={t.header_cart}
             >
               <ShoppingBag size={20} />
               {cartCount > 0 && (
@@ -116,7 +120,7 @@ export default function Header({ cartCount, onCartClick, activeSection }) {
 
       {/* ═══ Mobile Full-Screen Menu ═══ */}
       {menuOpen && (
-        <div className="lg:hidden fixed inset-0 top-16 z-40 bg-[#1a1410]/98 backdrop-blur-2xl animate-fade-in">
+        <div ref={menuFocusTrapRef} className="lg:hidden fixed inset-0 top-16 z-40 bg-[#1a1410]/98 backdrop-blur-2xl animate-fade-in" tabIndex={-1}>
           <nav className="flex flex-col items-center justify-center h-full gap-2 px-8">
             {navItems.map((link, i) => (
               <button

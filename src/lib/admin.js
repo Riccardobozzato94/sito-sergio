@@ -118,6 +118,29 @@ export async function updateSiteContent(id, value_it, value_en) {
   return data;
 }
 
+// ── SITE SETTINGS (stored in site_content with section='_setting') ──
+
+export async function getSiteSettings() {
+  const { data, error } = await supabase
+    .from('site_content')
+    .select('*')
+    .eq('section', '_setting')
+    .order('key', { ascending: true });
+  if (error) throw error;
+  return data;
+}
+
+export async function updateSiteSetting(id, value) {
+  const { data, error } = await supabase
+    .from('site_content')
+    .update({ value_it: value, value_en: value, updated_at: new Date().toISOString() })
+    .eq('id', id)
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
 // ── IMAGE UPLOAD (Supabase Storage) ──
 
 export async function uploadProductImage(file, productId) {

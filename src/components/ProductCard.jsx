@@ -15,17 +15,17 @@ function formatPrice(price, unit) {
 
 // EU 14 major allergens — icons and short labels
 const ALLERGEN_LABELS = {
-  glutine:       { label: 'Glutine',  color: 'bg-amber-500/10 text-amber-400  border-amber-500/20' },
-  lattosio:      { label: 'Latte',    color: 'bg-blue-500/10  text-blue-400   border-blue-500/20'  },
-  uova:          { label: 'Uova',     color: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20' },
-  frutta_guscio: { label: 'Frutta s.guscio', color: 'bg-orange-500/10 text-orange-400 border-orange-500/20' },
-  arachidi:      { label: 'Arachidi', color: 'bg-red-500/10   text-red-400    border-red-500/20'   },
-  sesamo:        { label: 'Sesamo',   color: 'bg-lime-500/10  text-lime-400   border-lime-500/20'  },
-  soia:          { label: 'Soia',     color: 'bg-green-500/10 text-green-400  border-green-500/20' },
-  sedano:        { label: 'Sedano',   color: 'bg-teal-500/10  text-teal-400   border-teal-500/20'  },
+  glutine:       { key: 'allergen_glutine',  color: 'bg-amber-500/10 text-amber-400  border-amber-500/20' },
+  lattosio:      { key: 'allergen_latte',    color: 'bg-blue-500/10  text-blue-400   border-blue-500/20'  },
+  uova:          { key: 'allergen_uova',     color: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20' },
+  frutta_guscio: { key: 'allergen_frutta_guscio', color: 'bg-orange-500/10 text-orange-400 border-orange-500/20' },
+  arachidi:      { key: 'allergen_arachidi', color: 'bg-red-500/10   text-red-400    border-red-500/20'   },
+  sesamo:        { key: 'allergen_sesamo',   color: 'bg-lime-500/10  text-lime-400   border-lime-500/20'  },
+  soia:          { key: 'allergen_soia',     color: 'bg-green-500/10 text-green-400  border-green-500/20' },
+  sedano:        { key: 'allergen_sedano',   color: 'bg-teal-500/10  text-teal-400   border-teal-500/20'  },
 };
 
-export default function ProductCard({ product, onAdd }) {
+export default function ProductCard({ product, onAdd, onClick }) {
   const { t } = useLang();
   const [justAdded, setJustAdded] = useState(false);
   const [shareJustCopied, setShareJustCopied] = useState(false);
@@ -38,6 +38,12 @@ export default function ProductCard({ product, onAdd }) {
     onAdd(product);
     setJustAdded(true);
     setTimeout(() => setJustAdded(false), 1500);
+  };
+
+  const handleCardClick = (e) => {
+    // Don't open modal if clicking the add-to-cart or share buttons
+    if (e.target.closest('button')) return;
+    onClick?.();
   };
 
   const handleShare = (e) => {
@@ -53,25 +59,25 @@ export default function ProductCard({ product, onAdd }) {
   const allergenList = Array.isArray(product.allergens) ? product.allergens : [];
 
   return (
-    <article className="product-card rounded-2xl overflow-hidden group relative" role="article" aria-label={product.name}>
+    <article className="product-card rounded-2xl overflow-hidden group relative cursor-pointer" role="article" aria-label={product.name} onClick={handleCardClick}>
 
       {/* ═══ Badge "Del Giorno" — più elegante ═══ */}
       {product.is_featured && (
         <div className="absolute top-3 left-3 z-10 flex items-center gap-1 bg-primary/90 text-bg text-[10px] font-bold px-2.5 py-1 rounded-full shadow-lg uppercase tracking-[0.08em]">
-          Del Giorno
+          {t.product_of_day}
         </div>
       )}
 
-      {/* ═══ Share button ═══ */}
+      {/* ═══ Share button — visible on hover AND touch ═══ */}
       <button
         onClick={handleShare}
-        className={`absolute top-3 right-3 z-10 w-8 h-8 rounded-full flex items-center justify-center shadow-lg transition-all duration-200 opacity-0 group-hover:opacity-100 ${
+        className={`absolute top-3 right-3 z-10 w-8 h-8 rounded-full flex items-center justify-center shadow-lg transition-all duration-200 sm:opacity-0 sm:group-hover:opacity-100 ${
           shareJustCopied
             ? 'bg-green-500 text-white'
             : 'bg-bg/60 backdrop-blur-sm text-text-dim hover:text-white hover:bg-[#25d366]'
         }`}
-        aria-label={`Condividi ${product.name} su WhatsApp`}
-        title="Condividi su WhatsApp"
+        aria-label={`${t.product_share_label} ${product.name} WhatsApp`}
+        title={t.product_share_whatsapp}
       >
         {shareJustCopied ? <Check size={14} /> : <Share2 size={13} />}
       </button>
@@ -111,10 +117,10 @@ export default function ProductCard({ product, onAdd }) {
               return info ? (
                 <span
                   key={a}
-                  title={`Contiene: ${info.label}`}
+                  title={`Contiene: ${t[info.key]}`}
                   className={`text-[9px] font-semibold px-1.5 py-0.5 rounded border uppercase tracking-wide ${info.color}`}
                 >
-                  {info.label}
+                  {t[info.key]}
                 </span>
               ) : null;
             })}

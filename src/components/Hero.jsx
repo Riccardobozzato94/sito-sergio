@@ -1,9 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
-import { BUSINESS } from '../lib/config';
-import { useLang } from '../App';
+import { BUSINESS as STATIC_BUSINESS } from '../lib/config';
+import { useLang, useSettings } from '../App';
 
 export default function Hero({ onExploreClick }) {
   const { t } = useLang();
+  const { settings } = useSettings();
+  const BUSINESS = settings?.business || STATIC_BUSINESS;
   const [visible, setVisible] = useState(false);
   const parallaxRef = useRef(null);
 

@@ -47,7 +47,7 @@ export default function HowToOrder() {
 
               {/* Step number */}
               <span className="text-primary/40 text-xs font-bold tracking-[0.25em] uppercase mb-2 block">
-                Step {i + 1}
+                {t.step_label} {i + 1}
               </span>
 
               {/* Title */}

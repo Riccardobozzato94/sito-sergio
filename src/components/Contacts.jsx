@@ -1,9 +1,12 @@
 import { MapPin, Phone, Mail, MessageCircle } from 'lucide-react';
-import { BUSINESS } from '../lib/config';
-import { useLang } from '../App';
+import { BUSINESS as STATIC_BUSINESS } from '../lib/config';
+import { useLang, useSettings } from '../App';
+import ContactForm from './ContactForm';
 
 export default function Contacts() {
   const { t } = useLang();
+  const { settings } = useSettings();
+  const BUSINESS = settings?.business || STATIC_BUSINESS;
 
   // OpenStreetMap embed (no API key required) — reliable and privacy-friendly
   const mapEmbedUrl = `https://www.openstreetmap.org/export/embed.html?bbox=12.27488%2C45.21702%2C12.28488%2C45.22702&amp;layer=mapnik&amp;marker=45.22202%2C12.27988`;
@@ -110,6 +113,16 @@ export default function Contacts() {
           >
             {t.contacts_maps_link}
           </a>
+        </div>
+
+        {/* ═══ Contact Form ═══ */}
+        <div className="mt-12 sm:mt-16 max-w-lg mx-auto">
+          <h3 className="font-heading text-xl sm:text-2xl text-primary text-center mb-6">
+            {t.contacts_form_title || 'Scrivici un Messaggio'}
+          </h3>
+          <div className="bg-bg-card rounded-2xl border border-border p-6 sm:p-8">
+            <ContactForm />
+          </div>
         </div>
       </div>
     </section>

@@ -1,88 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-        xmlns:xhtml="http://www.w3.org/1999/xhtml"
-        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
-
-  <!-- ═══ Homepage (italiana — default) ═══ -->
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
     <loc>https://www.panificiodasergio.it/</loc>
-    <lastmod>2026-07-11</lastmod>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
-    <xhtml:link rel="alternate" hreflang="it"        href="https://www.panificiodasergio.it/" />
-    <xhtml:link rel="alternate" hreflang="en"        href="https://www.panificiodasergio.it/?lang=en" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.panificiodasergio.it/" />
-    <image:image>
-      <image:loc>https://www.panificiodasergio.it/images/hero-bg.jpg</image:loc>
-      <image:title>Panificio Da Sergio — Pane artigianale e dolci tradizionali a Chioggia dal 1977</image:title>
-    </image:image>
-    <image:image>
-      <image:loc>https://www.panificiodasergio.it/images/storefront.jpg</image:loc>
-      <image:title>Esterno del Panificio Da Sergio a Chioggia</image:title>
-    </image:image>
-  </url>
-
-  <!-- ═══ Homepage (inglese) ═══ -->
-  <url>
-    <loc>https://www.panificiodasergio.it/?lang=en</loc>
-    <lastmod>2026-07-11</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-    <xhtml:link rel="alternate" hreflang="it"        href="https://www.panificiodasergio.it/" />
-    <xhtml:link rel="alternate" hreflang="en"        href="https://www.panificiodasergio.it/?lang=en" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://www.panificiodasergio.it/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.panificiodasergio.it/?lang=en" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://www.panificiodasergio.it/" />
   </url>
-
-  <!-- ═══ Sezione Prodotti ═══ -->
-  <url>
-    <loc>https://www.panificiodasergio.it/#prodotti</loc>
-    <lastmod>2026-07-11</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-    <image:image>
-      <image:loc>https://www.panificiodasergio.it/images/bussola.jpg</image:loc>
-      <image:title>Bussolà — Frollini artigianali tipici di Chioggia</image:title>
-    </image:image>
-    <image:image>
-      <image:loc>https://www.panificiodasergio.it/images/pevarini.jpg</image:loc>
-      <image:title>Pevarini — Biscotti veneziani tradizionali</image:title>
-    </image:image>
-    <image:image>
-      <image:loc>https://www.panificiodasergio.it/images/torte-mandorla.jpg</image:loc>
-      <image:title>Torte di mandorle — Dolci artigianali Da Sergio</image:title>
-    </image:image>
-  </url>
-
-  <!-- ═══ Chi Siamo ═══ -->
-  <url>
-    <loc>https://www.panificiodasergio.it/#chi-siamo</loc>
-    <lastmod>2026-07-11</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-
-  <!-- ═══ Orari ═══ -->
-  <url>
-    <loc>https://www.panificiodasergio.it/#orari</loc>
-    <lastmod>2026-07-11</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-
-  <!-- ═══ Contatti ═══ -->
-  <url>
-    <loc>https://www.panificiodasergio.it/#contatti</loc>
-    <lastmod>2026-07-11</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-
-  <!-- ═══ Privacy Policy ═══ -->
-  <url>
-    <loc>https://www.panificiodasergio.it/#privacy</loc>
-    <lastmod>2026-07-11</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.3</priority>
-  </url>
-
 </urlset>

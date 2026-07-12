@@ -8,8 +8,8 @@ export default function Contacts() {
   const { settings } = useSettings();
   const BUSINESS = settings?.business || STATIC_BUSINESS;
 
-  // OpenStreetMap embed (no API key required) — reliable and privacy-friendly
-  const mapEmbedUrl = `https://www.openstreetmap.org/export/embed.html?bbox=12.27488%2C45.21702%2C12.28488%2C45.22702&amp;layer=mapnik&amp;marker=45.22202%2C12.27988`;
+  // Google Maps embed — no API key needed, uses address-based embed
+  const mapEmbedUrl = `https://maps.google.com/maps?q=${encodeURIComponent(BUSINESS.address)}&t=&z=16&ie=UTF8&iwloc=&output=embed`;
 
   const contactCards = [
     {
@@ -100,8 +100,8 @@ export default function Contacts() {
             allowFullScreen=""
             loading="lazy"
             referrerPolicy="no-referrer"
-            title={`${BUSINESS.name} — Mappa Google`}
-            aria-label={`Mappa con la posizione del ${BUSINESS.name}`}
+            title={`${BUSINESS.name} — Google Maps`}
+            aria-label={`Mappa Google Maps con la posizione del ${BUSINESS.name}`}
           />
         </div>
         <div className="text-center mt-4">

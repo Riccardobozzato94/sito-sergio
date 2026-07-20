@@ -84,11 +84,35 @@ export default function OpeningHours() {
             <div className="w-72 sm:w-80 lg:w-96 bg-bg-card rounded-2xl border border-border p-8 text-center shadow-2xl shadow-black/30">
               {/* Status indicator */}
               {(() => {
-                const currentHour = new Date().getHours();
-                const currentDay = new Date().getDay();
+                const now = new Date();
+                const currentHour = now.getHours();
+                const currentMin = now.getMinutes();
+                const currentDay = now.getDay();
                 const mappedDay = currentDay === 0 ? 6 : currentDay - 1;
                 const todayHours = HOURS[mappedDay];
-                const isCurrentlyOpen = todayHours && todayHours.hours !== 'Chiuso' && currentHour >= 10 && currentHour < 19;
+
+                // Parse closing time from hours string like "10:00 - 19:00"
+                let isCurrentlyOpen = false;
+                let closesInMin = 0;
+                let opensAtStr = '';
+
+                if (todayHours && todayHours.hours !== 'Chiuso') {
+                  var parts = todayHours.hours.split('-');
+                  if (parts.length === 2) {
+                    var openStr = parts[0].trim();
+                    var closeStr = parts[1].trim();
+                    opensAtStr = openStr;
+                    var openParts = openStr.split(':');
+                    var closeParts = closeStr.split(':');
+                    var openMin = parseInt(openParts[0]) * 60 + (parseInt(openParts[1]) || 0);
+                    var closeMin = parseInt(closeParts[0]) * 60 + (parseInt(closeParts[1]) || 0);
+                    var nowMin = currentHour * 60 + currentMin;
+                    isCurrentlyOpen = nowMin >= openMin && nowMin < closeMin;
+                    if (isCurrentlyOpen) {
+                      closesInMin = closeMin - nowMin;
+                    }
+                  }
+                }
 
                 return (
                   <>
@@ -98,6 +122,18 @@ export default function OpeningHours() {
                     </p>
                     {todayHours && todayHours.hours !== 'Chiuso' && (
                       <p className="text-text-dim text-xs">{todayHours.hours}</p>
+                    )}
+                    {isCurrentlyOpen && closesInMin > 0 && (
+                      <p className="text-primary text-xs mt-2 font-medium">
+                        {closesInMin < 60
+                          ? 'Chiude tra ' + closesInMin + ' min'
+                          : 'Chiude tra ' + Math.floor(closesInMin / 60) + 'h ' + (closesInMin % 60) + 'min'}
+                      </p>
+                    )}
+                    {!isCurrentlyOpen && opensAtStr && (
+                      <p className="text-text-dim text-xs mt-2">
+                        Apre alle {opensAtStr}
+                      </p>
                     )}
                   </>
                 );

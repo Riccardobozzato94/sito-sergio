@@ -22,6 +22,12 @@ const ALLERGEN_OPTIONS = [
   'arachidi', 'sesamo', 'soia', 'sedano',
 ];
 
+const DIETARY_OPTIONS = [
+  { value: 'vegan', label: 'Vegano' },
+  { value: 'senza_lattosio', label: 'Senza Lattosio' },
+  { value: 'integrale', label: 'Integrale' },
+];
+
 const emptyProduct = {
   name: '',
   description: '',
@@ -32,6 +38,8 @@ const emptyProduct = {
   is_available: true,
   is_featured: false,
   allergens: [],
+  dietary: [],
+  ingredients: '',
   display_order: 0,
 };
 
@@ -99,6 +107,8 @@ export default function AdminProducts() {
       is_available: product.is_available ?? true,
       is_featured: product.is_featured ?? false,
       allergens: product.allergens || [],
+      dietary: product.dietary || [],
+      ingredients: product.ingredients || '',
       display_order: product.display_order ?? 0,
     });
     setEditing(product.id);
@@ -121,6 +131,8 @@ export default function AdminProducts() {
         ...form,
         price: parseFloat(form.price),
         display_order: parseInt(form.display_order) || 0,
+        dietary: form.dietary || [],
+        ingredients: form.ingredients || '',
       };
       if (editing === 'new') await createProduct(payload);
       else await updateProduct(editing, payload);
@@ -169,6 +181,15 @@ export default function AdminProducts() {
       allergens: f.allergens.includes(allergen)
         ? f.allergens.filter((a) => a !== allergen)
         : [...f.allergens, allergen],
+    }));
+  }
+
+  function toggleDietary(diet) {
+    setForm((f) => ({
+      ...f,
+      dietary: f.dietary?.includes(diet)
+        ? f.dietary.filter((d) => d !== diet)
+        : [...(f.dietary || []), diet],
     }));
   }
 
@@ -328,6 +349,34 @@ export default function AdminProducts() {
                     }`}
                   >
                     {a === 'frutta_guscio' ? 'Frutta a guscio' : a.charAt(0).toUpperCase() + a.slice(1)}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="sm:col-span-2">
+              <label className="text-text-dim text-xs uppercase tracking-wider block mb-1.5">Ingredienti</label>
+              <textarea
+                value={form.ingredients || ''}
+                onChange={(e) => setForm((f) => ({ ...f, ingredients: e.target.value }))}
+                rows={2}
+                className="w-full bg-bg border border-border rounded-xl px-4 py-3 text-sm text-white placeholder:text-text-dim/50 focus:outline-none focus:border-primary resize-none"
+                placeholder="Es. Farina di grano tenero, burro, uova, zucchero, limone..."
+              />
+            </div>
+            <div className="sm:col-span-2">
+              <label className="text-text-dim text-xs uppercase tracking-wider block mb-2">Dieta / Tipologia</label>
+              <div className="flex flex-wrap gap-2">
+                {DIETARY_OPTIONS.map((d) => (
+                  <button
+                    key={d.value}
+                    onClick={() => toggleDietary(d.value)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${
+                      form.dietary?.includes(d.value)
+                        ? 'bg-green-500/10 text-green-400 border-green-500/30'
+                        : 'bg-bg text-text-dim border-border hover:border-white/20'
+                    }`}
+                  >
+                    {d.label}
                   </button>
                 ))}
               </div>

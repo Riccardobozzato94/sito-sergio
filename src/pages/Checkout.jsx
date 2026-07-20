@@ -133,6 +133,17 @@ export default function Checkout({ cart, onClearCart }) {
                 <span className="text-primary">{total.toFixed(2).replace('.', ',')}€</span>
               </div>
             </div>
+
+            {/* Cutoff message */}
+            <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl px-3 py-2 text-xs text-amber-300 mt-3">
+              Ordina entro le 18:00 per ritiro domani mattina
+            </div>
+
+            {subtotal < 5 && subtotal > 0 && (
+              <p className="text-amber-400 text-xs mt-1 flex items-center gap-1">
+                <AlertCircle size={12} /> L'ordine minimo è di 5€. Aggiungi altri prodotti.
+              </p>
+            )}
           </div>
 
           {/* ═══ Delivery ═══ */}

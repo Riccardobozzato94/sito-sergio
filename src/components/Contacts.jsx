@@ -8,9 +8,6 @@ export default function Contacts() {
   const { settings } = useSettings();
   const BUSINESS = settings?.business || STATIC_BUSINESS;
 
-  // Google Maps embed — no API key needed, uses address-based embed
-  const mapEmbedUrl = `https://maps.google.com/maps?q=${encodeURIComponent(BUSINESS.address)}&t=&z=16&ie=UTF8&iwloc=&output=embed`;
-
   const contactCards = [
     {
       icon: <MapPin size={20} />,
@@ -90,30 +87,33 @@ export default function Contacts() {
           ))}
         </div>
 
-        {/* ═══ Google Maps Embed ═══ */}
-        <div className="map-container aspect-[21/9] sm:aspect-[16/7]">
-          <iframe
-            src={mapEmbedUrl}
-            width="100%"
-            height="100%"
-            style={{ border: 0 }}
-            allowFullScreen=""
-            loading="lazy"
-            referrerPolicy="no-referrer"
-            title={`${BUSINESS.name} — Google Maps`}
-            aria-label={`Mappa Google Maps con la posizione del ${BUSINESS.name}`}
-          />
-        </div>
-        <div className="text-center mt-4">
-          <a
-            href={`https://maps.google.com/?q=${encodeURIComponent(BUSINESS.address)}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-primary text-sm hover:underline inline-flex items-center gap-1"
-          >
-            {t.contacts_maps_link}
-          </a>
-        </div>
+        {/* ═══ Mappa — card cliccabile ═══ */}
+        <a
+          href={`https://maps.google.com/?q=${encodeURIComponent(BUSINESS.address)}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="block rounded-2xl overflow-hidden border border-border shadow-xl hover:border-primary/30 transition-all group"
+        >
+          <div className="relative h-[250px] sm:h-[300px] bg-bg-elevated flex items-center justify-center">
+            {/* Address overlay */}
+            <div className="absolute inset-0 bg-gradient-to-t from-bg/90 via-bg/40 to-transparent z-10" />
+            <div className="relative z-20 text-center p-6">
+              <div className="w-14 h-14 rounded-full bg-primary/20 text-primary flex items-center justify-center mx-auto mb-3 group-hover:bg-primary/30 transition-colors">
+                <MapPin size={28} />
+              </div>
+              <p className="text-white font-heading text-lg mb-1">{BUSINESS.address}</p>
+              <p className="text-primary text-sm font-medium">{t.contacts_maps_link || 'Apri in Google Maps'} →</p>
+            </div>
+            {/* Decorative map lines */}
+            <svg className="absolute inset-0 w-full h-full opacity-[0.07]" viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+              <path d="M0 150 Q100 100 200 150 T400 150" fill="none" stroke="white" strokeWidth="1"/>
+              <path d="M0 200 Q80 180 160 200 T320 200 T400 220" fill="none" stroke="white" strokeWidth="0.5"/>
+              <path d="M0 80 Q60 60 120 80 T240 60 T360 80 T400 70" fill="none" stroke="white" strokeWidth="0.5"/>
+              <circle cx="200" cy="150" r="8" fill="none" stroke="white" strokeWidth="2"/>
+              <circle cx="200" cy="150" r="3" fill="#d4a574"/>
+            </svg>
+          </div>
+        </a>
 
         {/* ═══ Contact Form ═══ */}
         <div className="mt-12 sm:mt-16 max-w-lg mx-auto">

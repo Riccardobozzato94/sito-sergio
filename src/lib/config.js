@@ -16,6 +16,16 @@ export const BUSINESS = {
   email: "info@panificiodasergio.it",
   whatsappNumber: "39041401200",
   website: "www.panificiodasergio.com",
+  cutoffHour: 18,       // Ora limite per ordini (ritiro giorno dopo)
+  cutoffMinute: 0,
+  minOrderAmount: 5,     // Ordine minimo in EUR
+  deliverySlots: [       // Slot disponibili per ritiro
+    { label: 'Oggi 12:00-13:00', value: 'today_12' },
+    { label: 'Oggi 17:00-19:00', value: 'today_17' },
+    { label: 'Domani mattina 07:00-10:00', value: 'tomorrow_07' },
+    { label: 'Domani 12:00-13:00', value: 'tomorrow_12' },
+    { label: 'Domani 17:00-19:00', value: 'tomorrow_17' },
+  ],
 };
 
 export const HOURS = [
@@ -31,7 +41,7 @@ export const HOURS = [
 export const SOCIAL = {
   facebook: "https://www.facebook.com/p/Panificio-da-Sergio-Chioggia-100057410531710",
   instagram: null, // Not available — icon hidden in Footer
-  googleReviews: "https://www.google.com/search?sa=X&sca_esv=5ed080b9caecffb2&q=Panificio+Da+Sergio+Recensioni&rflfq=1&num=20&stick=H4sIAAAAAAAAAONgkxIxtDA0NjQ2NzS3NLEwMjU1Nja3MNnAyPiKUS4gMS8zLTM5M1_BJVEhOLUoHcgKSk1OzSvOzM_LXMRKQAEACIdJn10AAAA&rldimm=18131371794825533784&tbm=lcl&hl=it-IT&ved=2ahUKEwia49C5l-aTAxWo0QIHHWLGI5sQ9fQKegQIVBAG&biw=948&bih=948&dpr=1#lkt=LocalPoiReviews",
+  googleReviews: "https://share.google/3atabYNGXSHpAWi9S",
   tripadvisor: "https://www.tripadvisor.it/Restaurant_Review-g194738-d7005470-Reviews-Panificio_da_Sergio-Chioggia_Veneto.html",
 };
 

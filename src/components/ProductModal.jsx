@@ -131,6 +131,18 @@ export default function ProductModal({ product, onClose, onAddToCart }) {
             </div>
           )}
 
+          {/* Ingredients */}
+          {product.ingredients && (
+            <div className="mb-6">
+              <h4 className="text-text-dim text-xs uppercase tracking-wider mb-2 font-semibold">
+                {t.ingredient_title || 'Ingredienti'}
+              </h4>
+              <p className="text-text-muted text-sm leading-relaxed">
+                {Array.isArray(product.ingredients) ? product.ingredients.join(', ') : product.ingredients}
+              </p>
+            </div>
+          )}
+
           {/* Actions */}
           <div className="flex gap-3">
             <button

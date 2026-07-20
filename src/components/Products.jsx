@@ -12,6 +12,7 @@ export default function Products({ onAddToCart }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [search, setSearch] = useState('');
+  const [activeDiet, setActiveDiet] = useState(null);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const searchRef = useRef(null);
 
@@ -74,10 +75,21 @@ export default function Products({ onAddToCart }) {
       )
     : products;
 
-  // When category changes, reset search
+  // Dietary filter
+  const dietFiltered = activeDiet
+    ? filteredProducts.filter((p) => {
+        if (activeDiet === 'vegan') return p.dietary?.includes('vegan');
+        if (activeDiet === 'senza_lattosio') return p.dietary?.includes('senza_lattosio');
+        if (activeDiet === 'integrale') return p.dietary?.includes('integrale');
+        return true;
+      })
+    : filteredProducts;
+
+  // When category changes, reset search and diet filter
   const handleCategoryChange = (key) => {
     setActiveCategory(key);
     setSearch('');
+    setActiveDiet(null);
   };
 
   if (loading) {
@@ -154,6 +166,50 @@ export default function Products({ onAddToCart }) {
               </button>
             ))}
           </div>
+
+          {/* ═══ Dietary filter pills ═══ */}
+          <div className="flex flex-wrap justify-center gap-2">
+            <button
+              onClick={() => setActiveDiet(null)}
+              className={`tab-pill px-4 py-2 rounded-full text-xs font-medium border ${
+                !activeDiet
+                  ? 'active'
+                  : 'text-text-muted bg-transparent border-border hover:border-primary/30'
+              }`}
+            >
+              Tutti
+            </button>
+            <button
+              onClick={() => setActiveDiet('vegan')}
+              className={`tab-pill px-4 py-2 rounded-full text-xs font-medium border ${
+                activeDiet === 'vegan'
+                  ? 'bg-green-500/20 border-green-500/40 text-green-400'
+                  : 'text-text-muted bg-transparent border-border hover:border-primary/30'
+              }`}
+            >
+              {t.filter_vegan}
+            </button>
+            <button
+              onClick={() => setActiveDiet('senza_lattosio')}
+              className={`tab-pill px-4 py-2 rounded-full text-xs font-medium border ${
+                activeDiet === 'senza_lattosio'
+                  ? 'bg-blue-500/20 border-blue-500/40 text-blue-400'
+                  : 'text-text-muted bg-transparent border-border hover:border-primary/30'
+              }`}
+            >
+              {t.filter_senza_lattosio}
+            </button>
+            <button
+              onClick={() => setActiveDiet('integrale')}
+              className={`tab-pill px-4 py-2 rounded-full text-xs font-medium border ${
+                activeDiet === 'integrale'
+                  ? 'bg-amber-500/20 border-amber-500/40 text-amber-400'
+                  : 'text-text-muted bg-transparent border-border hover:border-primary/30'
+              }`}
+            >
+              {t.filter_integrale}
+            </button>
+          </div>
         </div>
 
         {/* ═══ Error State ═══ */}
@@ -166,15 +222,15 @@ export default function Products({ onAddToCart }) {
         {/* ═══ Search result count ═══ */}
         {search && (
           <p className="text-center text-text-dim text-sm mb-6">
-            {filteredProducts.length === 0
+            {dietFiltered.length === 0
               ? t.search_no_results
-              : `${filteredProducts.length} ${t.search_results_count}${filteredProducts.length === 1 ? 'o' : 'i'} per "${search}"`}
+              : `${dietFiltered.length} ${t.search_results_count}${dietFiltered.length === 1 ? 'o' : 'i'} per "${search}"`}
           </p>
         )}
 
         {/* ═══ Product Grid ═══ */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
-          {filteredProducts.map((product, index) => (
+          {dietFiltered.map((product, index) => (
             <div
               key={product.id}
               className="animate-fade-in-up"
@@ -186,7 +242,7 @@ export default function Products({ onAddToCart }) {
         </div>
 
         {/* ═══ Empty State ═══ */}
-        {filteredProducts.length === 0 && !error && (
+        {dietFiltered.length === 0 && !error && (
           <div className="text-center py-20">
             <div className="w-16 h-16 bg-white/[0.04] rounded-full flex items-center justify-center mx-auto mb-4">
               <ShoppingCart size={28} className="text-text-dim" />

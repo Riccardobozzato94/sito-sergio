@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { getOrders, updateOrderStatus } from '../lib/admin';
 import {
   ShoppingCart, Check, X, Eye, EyeOff, AlertCircle,
-  Search, Filter, Download, ArrowUpDown
+  Search, Filter, Download, ArrowUpDown, Printer
 } from 'lucide-react';
 
 const STATUS_OPTIONS = ['pending', 'paid', 'preparing', 'ready', 'completed', 'cancelled'];
@@ -48,6 +48,15 @@ export default function AdminOrders() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [search, setSearch] = useState('');
   const [sortAsc, setSortAsc] = useState(false);
+
+  // Inject print styles for ticket layout
+  useEffect(() => {
+    var style = document.createElement('style');
+    style.id = 'admin-print-styles';
+    style.innerHTML = '@media print{@page{size:80mm 297mm;margin:0}body{background:white;color:black;font-size:10pt;font-family:monospace}.site-header,.admin-sidebar,.admin-sidebar-inner,.admin-sidebar-nav,.admin-sidebar-logo,.admin-sidebar-label,.admin-sidebar-link,#sidebar-toggle,.print\\:hidden,.btn,.filter-bar,.search-bar,.status-filters{display:none!important}.admin-main{margin-left:0!important;padding:10px!important}table{width:100%;border-collapse:collapse}th,td{padding:4px 6px;text-align:left;border-bottom:1px solid #ccc}th{font-weight:bold;border-bottom:2px solid #333}}';
+    document.head.appendChild(style);
+    return function() { var s = document.getElementById('admin-print-styles'); if (s) s.remove(); };
+  }, []);
 
   useEffect(() => { loadOrders(); }, []);
 
@@ -155,13 +164,22 @@ export default function AdminOrders() {
           </p>
         </div>
         {orders.length > 0 && (
-          <button
-            onClick={exportToCsv}
-            className="bg-[#201c17] border border-white/[0.04] text-text-dim hover:text-white px-4 py-2.5 rounded-xl text-sm flex items-center gap-2 hover:border-white/20 transition-all self-start sm:self-auto"
-          >
-            <Download size={16} />
-            Esporta CSV
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => window.print()}
+              className="bg-[#201c17] border border-white/[0.04] text-text-dim hover:text-white px-4 py-2.5 rounded-xl text-sm flex items-center gap-2 hover:border-white/20 transition-all"
+            >
+              <Printer size={16} />
+              Stampa
+            </button>
+            <button
+              onClick={exportToCsv}
+              className="bg-[#201c17] border border-white/[0.04] text-text-dim hover:text-white px-4 py-2.5 rounded-xl text-sm flex items-center gap-2 hover:border-white/20 transition-all"
+            >
+              <Download size={16} />
+              Esporta CSV
+            </button>
+          </div>
         )}
       </div>
 

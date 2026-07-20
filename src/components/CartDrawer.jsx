@@ -2,6 +2,7 @@ import { useState, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { X, Minus, Plus, MessageCircle, AlertCircle, Truck, Store, Calendar, CreditCard } from 'lucide-react';
 import { BUSINESS } from '../lib/config';
+import { getOrderHistory, saveOrderHistory } from '../lib/order-history';
 import { useLang } from '../App';
 
 /** RFC-compliant email: requires at least 2-char TLD */
@@ -83,6 +84,7 @@ export default function CartDrawer({ isOpen, onClose, items, onUpdateQuantity })
     setIsSending(true);
     lastSentAt.current = Date.now();
 
+    saveOrderHistory(items);
     const url = `https://wa.me/${BUSINESS.whatsappNumber}?text=${encodeURIComponent(message)}`;
     window.open(url, '_blank', 'noopener,noreferrer');
 
@@ -122,13 +124,53 @@ export default function CartDrawer({ isOpen, onClose, items, onUpdateQuantity })
         {/* Items List */}
         <div className="flex-1 overflow-y-auto p-5 space-y-3">
           {items.length === 0 ? (
-            <div className="text-center py-16">
-              <div className="w-16 h-16 bg-white/[0.04] rounded-full flex items-center justify-center mx-auto mb-4">
-                <MessageCircle size={24} className="text-text-dim" />
+            <>
+              <div className="text-center py-16">
+                <div className="w-16 h-16 bg-white/[0.04] rounded-full flex items-center justify-center mx-auto mb-4">
+                  <MessageCircle size={24} className="text-text-dim" />
+                </div>
+                <p className="text-text-muted text-lg font-heading">{t.cart_empty_title}</p>
+                <p className="text-text-dim text-sm mt-2">{t.cart_empty_text}</p>
               </div>
-              <p className="text-text-muted text-lg font-heading">{t.cart_empty_title}</p>
-              <p className="text-text-dim text-sm mt-2">{t.cart_empty_text}</p>
-            </div>
+              {/* ═══ Last order reorder (only in empty cart) ═══ */}
+              {(() => {
+                try {
+                  var history = getOrderHistory();
+                  if (history.length === 0) return null;
+                  var lastOrder = history[0];
+                  var msg = 'Ciao! Vorrei riordinare il solito:\n';
+                  lastOrder.items.forEach(function(item) {
+                    msg += '  \u2022 ' + item.name + ' \u00d7 ' + item.quantity + '\n';
+                  });
+                  return (
+                    <div className="mt-6 bg-white/[0.03] rounded-xl p-4 border border-border">
+                      <p className="text-text-dim text-xs uppercase tracking-wider mb-3 font-semibold">
+                        {t.reorder_title || 'I tuoi ultimi acquisti'}
+                      </p>
+                      <div className="space-y-1.5 mb-3">
+                        {lastOrder.items.map(function(item) {
+                          return (
+                            <div key={item.id} className="flex items-center justify-between text-xs">
+                              <span className="text-text-muted">{item.name} \u00d7 {item.quantity}</span>
+                              <span className="text-text-dim">{item.price} \u20ac</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                      <button
+                        onClick={function() {
+                          var url = 'https://wa.me/' + BUSINESS.whatsappNumber + '?text=' + encodeURIComponent(msg);
+                          window.open(url, '_blank', 'noopener,noreferrer');
+                        }}
+                        className="w-full text-xs font-semibold py-2 rounded-xl border border-[#25d366]/30 text-[#25d366] hover:bg-[#25d366]/5 transition-all"
+                      >
+                        {t.reorder_btn || 'Riordina'} via WhatsApp
+                      </button>
+                    </div>
+                  );
+                } catch(e) { return null; }
+              })()}
+            </>
           ) : (
             items.map((item) => (
               <div key={item.id} className="flex gap-4 bg-bg rounded-xl p-3 border border-border">
@@ -286,17 +328,28 @@ export default function CartDrawer({ isOpen, onClose, items, onUpdateQuantity })
               )}
             </div>
 
-            {/* Pickup time (only for pickup) */}
+            {/* Pickup time slots */}
             {formData.deliveryMethod === 'pickup' && (
-              <select
-                value={formData.pickupTime}
-                onChange={(e) => setFormData({ ...formData, pickupTime: e.target.value })}
-                className="w-full bg-bg border border-border rounded-xl px-4 py-3 text-sm text-text focus:outline-none focus:border-primary transition-colors duration-200 appearance-none cursor-pointer"
-              >
-                <option value={t.cart_pickup_morning}>{t.cart_pickup_morning}</option>
-                <option value={t.cart_pickup_afternoon}>{t.cart_pickup_afternoon}</option>
-              </select>
+              <div>
+                <label className="text-text-dim text-xs uppercase tracking-wider mb-2 block">{t.slot_title}</label>
+                <select
+                  value={formData.pickupTime}
+                  onChange={(e) => setFormData({ ...formData, pickupTime: e.target.value })}
+                  className="w-full bg-bg border border-border rounded-xl px-4 py-3 text-sm text-text focus:outline-none focus:border-primary transition-colors duration-200 appearance-none cursor-pointer"
+                >
+                  <option value={t.slot_today_12}>{t.slot_today_12}</option>
+                  <option value={t.slot_today_17}>{t.slot_today_17}</option>
+                  <option value={t.slot_tomorrow_07}>{t.slot_tomorrow_07}</option>
+                  <option value={t.slot_tomorrow_12}>{t.slot_tomorrow_12}</option>
+                  <option value={t.slot_tomorrow_17}>{t.slot_tomorrow_17}</option>
+                </select>
+              </div>
             )}
+
+            {/* Cutoff message */}
+            <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl px-3 py-2 text-xs text-amber-300">
+              {t.cutoff_message}
+            </div>
 
             {/* Notes */}
             <textarea
@@ -319,6 +372,12 @@ export default function CartDrawer({ isOpen, onClose, items, onUpdateQuantity })
                 )}
               </div>
             </div>
+
+            {subtotal < 5 && subtotal > 0 && (
+              <p className="text-amber-400 text-xs mt-1 flex items-center gap-1">
+                <AlertCircle size={12} /> {t.min_order_error}
+              </p>
+            )}
 
             {/* ═══ Checkout / WhatsApp actions ═══ */}
             <div className="space-y-2">
@@ -345,13 +404,13 @@ export default function CartDrawer({ isOpen, onClose, items, onUpdateQuantity })
 
               <button
                 onClick={handleSendWhatsApp}
-                disabled={isSending}
+                disabled={isSending || subtotal < 5}
                 aria-busy={isSending}
                 className={`w-full font-bold py-3 rounded-xl flex items-center justify-center gap-2.5 transition-all duration-300 text-sm border ${
                   isSending
                     ? 'border-white/10 text-text-dim cursor-not-allowed'
                     : 'border-[#25d366]/30 text-[#25d366] hover:bg-[#25d366]/5 hover:border-[#25d366]/60'
-                }`}
+                } ${subtotal < 5 ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>

@@ -17,9 +17,7 @@ export default function AdminLogin() {
       await signIn(email, password);
       window.location.hash = '#/admin';
     } catch (err) {
-      setError(err.message === 'Invalid login credentials'
-        ? 'Email o password non corretti'
-        : err.message);
+      setError(err.message);
     } finally {
       setLoading(false);
     }
@@ -83,8 +81,11 @@ export default function AdminLogin() {
             {loading ? 'Accesso in corso...' : 'Accedi'}
           </button>
 
-          <p className="text-center text-text-dim text-xs mt-6">
+          <p className="text-center text-text-dim text-xs mt-4">
             <a href="#/" className="hover:text-primary transition-colors">← Torna al sito</a>
+          </p>
+          <p className="text-center text-text-dim/50 text-[10px] mt-4 leading-relaxed">
+            Demo: admin@panificio.it / admin123
           </p>
         </form>
       </div>

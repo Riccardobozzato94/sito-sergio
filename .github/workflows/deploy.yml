@@ -1,4 +1,4 @@
-﻿name: Deploy to GitHub Pages
+name: Deploy to GitHub Pages
 
 on:
   push:
@@ -24,7 +24,8 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
-      - run: npm run build      - name: Build CRM Dashboard
+      - run: npm run build
+      - name: Build CRM Dashboard
         run: |
           cd crm-dashboard
           npm ci
@@ -48,4 +49,3 @@ jobs:
     steps:
       - id: deployment
         uses: actions/deploy-pages@v4
-

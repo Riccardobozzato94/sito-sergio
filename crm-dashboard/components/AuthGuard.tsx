@@ -1,13 +1,8 @@
-﻿'use client';
+'use client';
 
 import { useEffect, useState } from 'react';
-import { createClient } from '@supabase/supabase-js';
 import { useRouter, usePathname } from 'next/navigation';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
-);
+import { createBrowserClient } from '@/lib/supabase-client';
 
 export default function AuthGuard({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
@@ -16,35 +11,49 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
   useEffect(() => {
+    let cancelled = false;
     const checkAuth = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      try {
+        const supabase = createBrowserClient();
+        const { data: { user } } = await supabase.auth.getUser();
 
-      if (!user) {
-        if (pathname !== '/login') {
+        if (cancelled) return;
+
+        if (!user) {
+          if (pathname !== '/login') {
+            router.push('/login');
+          } else {
+            setLoading(false);
+          }
+          return;
+        }
+
+        const { data: crmUser } = await supabase
+          .from('crm_users')
+          .select('id')
+          .eq('id', user.id)
+          .single();
+
+        if (cancelled) return;
+
+        if (!crmUser && pathname !== '/login') {
+          await supabase.auth.signOut();
           router.push('/login');
-        } else {
+          return;
+        }
+
+        setAuthorized(true);
+        setLoading(false);
+      } catch (err) {
+        console.error('AuthGuard error:', err);
+        if (!cancelled) {
           setLoading(false);
         }
-        return;
       }
-
-      const { data: crmUser } = await supabase
-        .from('crm_users')
-        .select('id')
-        .eq('id', user.id)
-        .single();
-
-      if (!crmUser && pathname !== '/login') {
-        await supabase.auth.signOut();
-        router.push('/login');
-        return;
-      }
-
-      setAuthorized(true);
-      setLoading(false);
     };
 
     checkAuth();
+    return () => { cancelled = true; };
   }, [pathname, router]);
 
   if (loading) {

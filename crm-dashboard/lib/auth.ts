@@ -1,8 +1,8 @@
-'use client';
+﻿'use client';
 
 import { createBrowserClient } from '@/lib/supabase-client';
 
-// ── Login with email + password ──
+// â”€â”€ Login with email + password â”€â”€
 export async function login(email: string, password: string) {
   const supabase = createBrowserClient();
 
@@ -32,39 +32,39 @@ export async function login(email: string, password: string) {
   return { success: true, user: { ...crmUser, id: data.user.id } };
 }
 
-// ── Google OAuth ──
+// â”€â”€ Google OAuth â”€â”€
 export async function signInWithGoogle() {
   const supabase = createBrowserClient();
   const { error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: `${window.location.origin}/auth/callback`,
+      redirectTo: `${window.location.origin}/admin/auth/callback`,
     },
   });
   if (error) return { error: error.message };
   return { success: true };
 }
 
-// ── GitHub OAuth ──
+// â”€â”€ GitHub OAuth â”€â”€
 export async function signInWithGitHub() {
   const supabase = createBrowserClient();
   const { error } = await supabase.auth.signInWithOAuth({
     provider: 'github',
     options: {
-      redirectTo: `${window.location.origin}/auth/callback`,
+      redirectTo: `${window.location.origin}/admin/auth/callback`,
     },
   });
   if (error) return { error: error.message };
   return { success: true };
 }
 
-// ── Logout ──
+// â”€â”€ Logout â”€â”€
 export async function logout() {
   const supabase = createBrowserClient();
   await supabase.auth.signOut();
 }
 
-// ── Get current user (client-side) ──
+// â”€â”€ Get current user (client-side) â”€â”€
 export async function getCurrentUser() {
   const supabase = createBrowserClient();
   const { data: { user } } = await supabase.auth.getUser();

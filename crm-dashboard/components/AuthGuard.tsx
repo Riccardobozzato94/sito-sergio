@@ -1,56 +1,92 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { createBrowserClient } from '@/lib/supabase-client';
+import { useState, useEffect } from 'react';
+
+const SUPABASE_URL = 'https://gohhqrbcaqvpkcltazzk.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdvaGhxcmJjYXF2cGtjbHRhenprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwMTU3MzgsImV4cCI6MjA5MTU5MTczOH0.jWIoLpWE2U_YjRbv3cU_MTZHqP9LTVizId2_yJSS7-U';
+
+async function checkUser() {
+  // Get stored session from localStorage
+  let accessToken = null;
+  try {
+    const stored = localStorage.getItem('supabase.auth.token');
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      accessToken = parsed?.currentSession?.access_token || null;
+    }
+  } catch (e) {
+    // localStorage not available
+  }
+
+  // If no stored token, user is not logged in
+  if (!accessToken) return null;
+
+  // Validate token with Supabase
+  try {
+    const res = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
+      headers: {
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data;
+  } catch {
+    return null;
+  }
+}
+
+async function loginUser(email: string, password: string) {
+  const res = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      apikey: SUPABASE_ANON_KEY,
+    },
+    body: JSON.stringify({ email, password }),
+  });
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.error_description || err.msg || 'Login failed');
+  }
+  const data = await res.json();
+  // Store session
+  try {
+    localStorage.setItem('supabase.auth.token', JSON.stringify({
+      currentSession: {
+        access_token: data.access_token,
+        refresh_token: data.refresh_token,
+        expires_at: Date.now() + data.expires_in * 1000,
+      },
+    }));
+  } catch (e) {
+    // localStorage not available
+  }
+  return data;
+}
 
 export default function AuthGuard({ children }: { children: React.ReactNode }) {
-  const [loading, setLoading] = useState(true);
-  const [authorized, setAuthorized] = useState(false);
   const [page, setPage] = useState<'loading' | 'login' | 'dashboard'>('loading');
+  const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
     let cancelled = false;
-    const checkAuth = async () => {
+    (async () => {
       try {
-        const supabase = createBrowserClient();
-        const { data: { user } } = await supabase.auth.getUser();
-
+        const u = await checkUser();
         if (cancelled) return;
-
-        if (!user) {
+        if (u) {
+          setUser(u);
+          setPage('dashboard');
+        } else {
           setPage('login');
-          setLoading(false);
-          return;
         }
-
-        const { data: crmUser } = await supabase
-          .from('crm_users')
-          .select('id')
-          .eq('id', user.id)
-          .single();
-
-        if (cancelled) return;
-
-        if (!crmUser) {
-          await supabase.auth.signOut();
-          setPage('login');
-          setLoading(false);
-          return;
-        }
-
-        setAuthorized(true);
-        setLoading(false);
-        setPage('dashboard');
       } catch (err) {
-        console.error('AuthGuard error:', err);
-        if (!cancelled) {
-          setPage('login');
-          setLoading(false);
-        }
+        console.error('Auth check error:', err);
+        if (!cancelled) setPage('login');
       }
-    };
-
-    checkAuth();
+    })();
     return () => { cancelled = true; };
   }, []);
 
@@ -66,69 +102,28 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
   }
 
   if (page === 'login') {
-    return <LoginPage />;
+    return <LoginForm onLogin={(u) => { setUser(u); setPage('dashboard'); }} />;
   }
 
   return <>{children}</>;
 }
 
-function LoginPage() {
+function LoginForm({ onLogin }: { onLogin: (user: any) => void }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
+    setLoading(true);
     setError('');
-
     try {
-      const supabase = createBrowserClient();
-      const { data, error: authError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (authError) {
-        setError('Credenziali non valide. Controlla email e password.');
-        setIsLoading(false);
-        return;
-      }
-
-      const { data: crmUser, error: crmError } = await supabase
-        .from('crm_users')
-        .select('role, full_name')
-        .eq('id', data.user.id)
-        .single();
-
-      if (crmError || !crmUser) {
-        await supabase.auth.signOut();
-        setError("Accesso non autorizzato. Contatta l'amministratore.");
-        setIsLoading(false);
-        return;
-      }
-
-      window.location.reload();
-    } catch (err) {
-      console.error('Login error:', err);
-      setError('Errore di connessione. Riprova.');
-      setIsLoading(false);
-    }
-  };
-
-  const handleGoogleLogin = async () => {
-    try {
-      const supabase = createBrowserClient();
-      await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: window.location.origin + '/sito-sergio/admin/auth/callback',
-        },
-      });
-    } catch (err) {
-      console.error('Google login error:', err);
-      setError('Errore di connessione. Riprova.');
+      const data = await loginUser(email, password);
+      onLogin(data.user || { id: data.user_id });
+    } catch (err: any) {
+      setError(err.message || 'Errore di accesso');
+      setLoading(false);
     }
   };
 
@@ -141,89 +136,39 @@ function LoginPage() {
         background: '#161616', border: '1px solid #2a2725', borderRadius: '16px',
         padding: '40px', width: '100%', maxWidth: '400px'
       }}>
-        <h1 style={{ color: '#f0ece6', fontSize: '24px', marginBottom: '8px' }}>
-          Accedi
-        </h1>
+        <h1 style={{ color: '#f0ece6', fontSize: '24px', marginBottom: '8px' }}>Accedi</h1>
         <p style={{ color: '#7a7570', fontSize: '14px', marginBottom: '24px' }}>
           CRM Panificio Da Sergio
         </p>
-
         {error && (
           <div style={{
             background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)',
             borderRadius: '8px', padding: '12px', color: '#fca5a5',
             fontSize: '13px', marginBottom: '16px'
-          }}>
-            {error}
-          </div>
+          }}>{error}</div>
         )}
-
-        <form onSubmit={handleLogin}>
+        <form onSubmit={handleSubmit}>
           <div style={{ marginBottom: '16px' }}>
-            <label style={{ color: '#a8a39e', fontSize: '13px', marginBottom: '6px', display: 'block' }}>
-              Email
-            </label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              style={{
-                width: '100%', padding: '10px 14px', borderRadius: '8px',
-                border: '1px solid #2a2725', background: '#0e0e0e',
-                color: '#f0ece6', fontSize: '14px', boxSizing: 'border-box'
-              }}
-              placeholder="La tua email"
-              required
-            />
+            <label style={{ color: '#a8a39e', fontSize: '13px', display: 'block', marginBottom: '6px' }}>Email</label>
+            <input type="email" value={email} onChange={e => setEmail(e.target.value)}
+              style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #2a2725',
+                background: '#0e0e0e', color: '#f0ece6', fontSize: '14px', boxSizing: 'border-box' }}
+              placeholder="La tua email" required />
           </div>
           <div style={{ marginBottom: '24px' }}>
-            <label style={{ color: '#a8a39e', fontSize: '13px', marginBottom: '6px', display: 'block' }}>
-              Password
-            </label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              style={{
-                width: '100%', padding: '10px 14px', borderRadius: '8px',
-                border: '1px solid #2a2725', background: '#0e0e0e',
-                color: '#f0ece6', fontSize: '14px', boxSizing: 'border-box'
-              }}
-              placeholder="La tua password"
-              required
-            />
+            <label style={{ color: '#a8a39e', fontSize: '13px', display: 'block', marginBottom: '6px' }}>Password</label>
+            <input type="password" value={password} onChange={e => setPassword(e.target.value)}
+              style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #2a2725',
+                background: '#0e0e0e', color: '#f0ece6', fontSize: '14px', boxSizing: 'border-box' }}
+              placeholder="La tua password" required />
           </div>
-          <button
-            type="submit"
-            disabled={isLoading}
-            style={{
-              width: '100%', padding: '10px', borderRadius: '8px',
-              border: 'none', background: isLoading ? '#4a7c59' : '#5a9e6f',
-              color: '#fff', fontSize: '14px', fontWeight: 500,
-              cursor: isLoading ? 'not-allowed' : 'pointer', marginBottom: '12px'
-            }}
-          >
-            {isLoading ? 'Accesso in corso...' : 'Accedi'}
+          <button type="submit" disabled={loading}
+            style={{ width: '100%', padding: '10px', borderRadius: '8px', border: 'none',
+              background: loading ? '#4a7c59' : '#5a9e6f', color: '#fff', fontSize: '14px', fontWeight: 500,
+              cursor: loading ? 'not-allowed' : 'pointer', marginBottom: '12px' }}>
+            {loading ? 'Accesso in corso...' : 'Accedi'}
           </button>
         </form>
-
-        <div style={{
-          textAlign: 'center', color: '#5a5650', fontSize: '12px',
-          margin: '16px 0'
-        }}>
-          oppure
-        </div>
-
-        <button
-          onClick={handleGoogleLogin}
-          style={{
-            width: '100%', padding: '10px', borderRadius: '8px',
-            border: '1px solid #2a2725', background: 'transparent',
-            color: '#f0ece6', fontSize: '14px', cursor: 'pointer'
-          }}
-        >
-          Continua con Google
-        </button>
       </div>
     </div>
   );

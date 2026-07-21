@@ -1,6 +1,7 @@
 import { Wheat, Hand, Timer, Flame } from 'lucide-react';
 import { BUSINESS } from '../lib/config';
 import { useLang } from '../App';
+import { imageUrl } from '../lib/images';
 
 export default function About() {
   const { t } = useLang();
@@ -72,7 +73,7 @@ export default function About() {
           <div className="shrink-0">
             <div className="w-72 sm:w-80 lg:w-96 aspect-[4/3] bg-bg-elevated rounded-2xl overflow-hidden border border-border shadow-2xl shadow-black/30">
               <img
-                src="/images/storefront.jpg"
+                src={imageUrl('/images/storefront.jpg')}
                 alt={`Esterno del ${BUSINESS.name} — ${BUSINESS.address}`}
                 className="img-cover hover:scale-105 transition-transform duration-700"
                 loading="lazy"

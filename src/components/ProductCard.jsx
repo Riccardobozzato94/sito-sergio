@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Check, Share2 } from 'lucide-react';
 import { BUSINESS } from '../lib/config';
 import { useLang } from '../App';
+import { imageUrl } from '../lib/images';
 
 // Helper: format price from database numeric field
 function formatPrice(price, unit) {
@@ -31,7 +32,7 @@ export default function ProductCard({ product, onAdd, onClick }) {
   const [shareJustCopied, setShareJustCopied] = useState(false);
   const [showIngredients, setShowIngredients] = useState(false);
 
-  const displayImage = product.image_url || '/images/placeholder-product.svg';
+  const displayImage = imageUrl(product.image_url || '/images/placeholder-product.svg');
   const displayPrice = formatPrice(product.price, product.unit);
 
   const handleAdd = (e) => {

@@ -3,6 +3,7 @@ import { X, Check, Share2, MessageCircle } from 'lucide-react';
 import { BUSINESS } from '../lib/config';
 import { useLang } from '../App';
 import useFocusTrap from '../lib/useFocusTrap';
+import { imageUrl } from '../lib/images';
 
 // Allergen labels (same as ProductCard)
 const ALLERGEN_LABELS = {
@@ -45,7 +46,7 @@ export default function ProductModal({ product, onClose, onAddToCart }) {
   if (!product) return null;
 
   const allergenList = Array.isArray(product.allergens) ? product.allergens : [];
-  const displayImage = product.image_url || '/images/placeholder-product.svg';
+  const displayImage = imageUrl(product.image_url || '/images/placeholder-product.svg');
   const displayPrice = formatPrice(product.price, product.unit);
 
   const handleShare = () => {

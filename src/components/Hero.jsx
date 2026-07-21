@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { BUSINESS as STATIC_BUSINESS } from '../lib/config';
 import { useLang, useSettings } from '../App';
+import { img } from '../lib/images';
 
 export default function Hero({ onExploreClick }) {
   const { t } = useLang();
@@ -36,7 +37,7 @@ export default function Hero({ onExploreClick }) {
           style={{ minHeight: '120%' }}
         >
           <img
-            src="/images/hero-bg.jpg"
+            src={img('IMG-20260415-WA0001.jpg')}
             alt={`Panificio Da Sergio — Pane artigianale e dolci tradizionali a Chioggia`}
             className="w-full h-full object-cover"
           />

@@ -4,6 +4,7 @@ import { X, Minus, Plus, MessageCircle, AlertCircle, Truck, Store, Calendar, Cre
 import { BUSINESS } from '../lib/config';
 import { getOrderHistory, saveOrderHistory } from '../lib/order-history';
 import { useLang } from '../App';
+import { imageUrl } from '../lib/images';
 
 /** RFC-compliant email: requires at least 2-char TLD */
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
@@ -175,7 +176,7 @@ export default function CartDrawer({ isOpen, onClose, items, onUpdateQuantity })
             items.map((item) => (
               <div key={item.id} className="flex gap-4 bg-bg rounded-xl p-3 border border-border">
                 <img
-                  src={item.image_url || '/images/placeholder-product.svg'}
+                  src={imageUrl(item.image_url || '/images/placeholder-product.svg')}
                   alt={item.name}
                   className="w-16 h-16 rounded-lg object-cover bg-bg-elevated shrink-0"
                 />

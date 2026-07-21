@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useLang } from '../App';
 import useFocusTrap from '../lib/useFocusTrap';
+import { GALLERY_PHOTOS } from '../lib/images';
 
 export default function Gallery() {
   const { t } = useLang();
@@ -9,17 +10,7 @@ export default function Gallery() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const lightboxFocusTrapRef = useFocusTrap(lightboxOpen);
 
-  const images = [
-    { src: '/images/gallery-1.jpg', alt: 'Prodotti artigianali — Panificio Da Sergio Chioggia' },
-    { src: '/images/gallery-2.jpg', alt: 'Pane fresco sfornato — Panificio artigianale Chioggia' },
-    { src: '/images/gallery-3.jpg', alt: 'Dolci tipici veneziani — Panificio Da Sergio' },
-    { src: '/images/gallery-4.jpg', alt: 'Forno tradizionale — Panificio artigianale Chioggia' },
-    { src: '/images/gallery-5.jpg', alt: 'Impasto artigianale — Pane tradizionale Chioggia' },
-    { src: '/images/gallery-6.jpg', alt: 'Biscotti e dolci — Panificio Da Sergio Chioggia' },
-    { src: '/images/gallery-7.jpg', alt: 'Specialità del Panificio Da Sergio — Chioggia' },
-    { src: '/images/gallery-8.jpg', alt: 'Lavorazione artigianale — Panificio Da Sergio' },
-    { src: '/images/gallery-9.jpg', alt: 'Interno del Panificio Da Sergio — Chioggia' },
-  ];
+  const images = GALLERY_PHOTOS;
 
   const openLightbox = (index) => {
     setCurrentIndex(index);

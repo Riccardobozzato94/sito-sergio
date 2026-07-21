@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { getProducts, createProduct, updateProduct, deleteProduct, uploadProductImage } from '../lib/admin';
 import { Plus, Pencil, Trash2, X, Check, ImageUp, AlertCircle, Search, Filter, Eye } from 'lucide-react';
+import { imageUrl } from '../lib/images';
 
 const CATEGORIES = [
   { value: 'dolci', label: 'Dolci' },
@@ -386,7 +387,7 @@ export default function AdminProducts() {
               <div className="flex items-center gap-4">
                 {form.image_url && (
                   <div className="w-16 h-16 rounded-xl overflow-hidden bg-bg border border-border shrink-0">
-                    <img src={form.image_url} alt="" className="w-full h-full object-cover" />
+                    <img src={imageUrl(form.image_url)} alt="" className="w-full h-full object-cover" />
                   </div>
                 )}
                 <input ref={fileInputRef} type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
@@ -522,7 +523,7 @@ export default function AdminProducts() {
               {/* Image */}
               <div className="w-14 h-14 rounded-xl overflow-hidden bg-bg border border-white/[0.04] shrink-0">
                 {p.image_url ? (
-                  <img src={p.image_url} alt={p.name} className="w-full h-full object-cover" />
+                  <img src={imageUrl(p.image_url)} alt={p.name} className="w-full h-full object-cover" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-text-dim text-lg">🥖</div>
                 )}

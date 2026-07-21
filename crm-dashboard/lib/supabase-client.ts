@@ -1,10 +1,10 @@
-import { createBrowserClient as createSSRBrowserClient } from '@supabase/ssr';
+import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
-// Browser client — uses @supabase/ssr so sessions are read from cookies too,
-// not just localStorage. Required for Next.js App Router.
+// Browser client - usa @supabase/supabase-js per compatibilità con static export.
+// @supabase/ssr non funziona con output:'export' (manca runtime Next.js).
 export function createBrowserClient() {
-  return createSSRBrowserClient(supabaseUrl, supabaseAnonKey);
+  return createClient(supabaseUrl, supabaseAnonKey);
 }

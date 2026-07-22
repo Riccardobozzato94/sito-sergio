@@ -1,4 +1,4 @@
-import { MapPin, Phone, Mail, MessageCircle } from 'lucide-react';
+import { MapPin, Phone, MessageCircle } from 'lucide-react';
 import { BUSINESS as STATIC_BUSINESS } from '../lib/config';
 import { useLang, useSettings } from '../App';
 import ContactForm from './ContactForm';
@@ -21,13 +21,6 @@ export default function Contacts() {
       label: t.contacts_phone,
       value: BUSINESS.phone,
       href: `tel:${BUSINESS.phone}`,
-      external: false,
-    },
-    {
-      icon: <Mail size={20} />,
-      label: t.contacts_email,
-      value: BUSINESS.email,
-      href: `mailto:${BUSINESS.email}`,
       external: false,
     },
     {

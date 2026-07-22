@@ -40,10 +40,7 @@ export default function Footer() {
                 <Phone size={15} className="text-primary/50 shrink-0" />
                 <span>{BUSINESS.phone}</span>
               </a>
-              <a href={`mailto:${BUSINESS.email}`} className="flex items-center gap-3 hover:text-primary transition-colors">
-                <Mail size={15} className="text-primary/50 shrink-0" />
-                <span>{BUSINESS.email}</span>
-              </a>
+              {/* Email rimosso su richiesta */}
             </div>
           </div>
 

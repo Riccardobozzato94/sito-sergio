@@ -62,11 +62,13 @@ export default function AdminOrders() {
 
   async function loadOrders() {
     try {
+      setError('');
       setLoading(true);
       const data = await getOrders();
       setOrders(data || []);
     } catch (err) {
       setError('Errore caricamento ordini');
+      setTimeout(() => setError(''), 5000);
     } finally { setLoading(false); }
   }
 
@@ -113,6 +115,7 @@ export default function AdminOrders() {
       setTimeout(() => setSuccess(''), 3000);
     } catch (err) {
       setError(err.message);
+      setTimeout(() => setError(''), 5000);
     }
   }
 
@@ -123,7 +126,7 @@ export default function AdminOrders() {
       o.customer_name,
       o.customer_email,
       o.customer_phone || '',
-      (o.total || 0).toFixed(2),
+      parseFloat(o.total || 0).toFixed(2),
       STATUS_LABELS[o.status] || o.status,
       PAYMENT_STATUS_LABELS[o.payment_status] || o.payment_status,
       formatDate(o.created_at),

@@ -21,15 +21,35 @@ const DEMO_PRODUCTS = [
 
 const DEMO_ORDERS = [
   { id:2847, customer_name:"Marco Rossi", customer_phone:"+39 333 1234567", customer_email:"marco@email.com", delivery_method:"pickup", pickup_time:"Oggi 12:00-13:00", notes:"", subtotal:14.50, shipping:0, total:14.50, status:"preparing", payment_status:"paid", created_at:new Date(Date.now()-3600000).toISOString(), items:[{name:"Bussol\u00e0",quantity:2,price:2.20},{name:"Pevarini",quantity:1,price:10}] },
-  { id:2846, name:"Anna Bianchi", customer_phone:"+39 345 9876543", customer_email:"anna@email.com", delivery_method:"pickup", pickup_time:"Oggi 17:00-19:00", notes:"", subtotal:20, shipping:0, total:20, status:"ready", payment_status:"paid", created_at:new Date(Date.now()-7200000).toISOString(), items:[{name:"Torta della Nonna",quantity:1,price:20}] },
-  { id:2845, name:"Luca Verdi", customer_phone:"+39 320 4567890", customer_email:"luca@email.com", delivery_method:"courier", pickup_time:"", notes:"Consegnare in portineria", subtotal:18, shipping:5.90, total:23.90, status:"pending", payment_status:"unpaid", created_at:new Date(Date.now()-1800000).toISOString(), items:[{name:"Papini",quantity:1,price:22},{name:"Pane integrale",quantity:2,price:5.50}] },
-  { id:2844, name:"Elena Neri", customer_phone:"+39 347 1122334", customer_email:"elena@email.com", delivery_method:"pickup", pickup_time:"Domani 07:00-10:00", notes:"", subtotal:25, shipping:0, total:25, status:"completed", payment_status:"paid", created_at:new Date(Date.now()-86400000).toISOString(), items:[{name:"Biscotti di Mandorle",quantity:1,price:25}] },
-  { id:2843, name:"Paolo Gialli", customer_phone:"+39 339 9988776", customer_email:"paolo@email.com", delivery_method:"reservation", pickup_time:"", notes:"Volevo sapere se avete il pane di segale disponibile", subtotal:12, shipping:0, total:12, status:"pending", payment_status:"unpaid", created_at:new Date(Date.now()-3600000).toISOString(), items:[{name:"Pane di segale",quantity:2,price:6}] },
+  { id:2846, customer_name:"Anna Bianchi", customer_phone:"+39 345 9876543", customer_email:"anna@email.com", delivery_method:"pickup", pickup_time:"Oggi 17:00-19:00", notes:"", subtotal:20, shipping:0, total:20, status:"ready", payment_status:"paid", created_at:new Date(Date.now()-7200000).toISOString(), items:[{name:"Torta della Nonna",quantity:1,price:20}] },
+  { id:2845, customer_name:"Luca Verdi", customer_phone:"+39 320 4567890", customer_email:"luca@email.com", delivery_method:"courier", pickup_time:"", notes:"Consegnare in portineria", subtotal:18, shipping:5.90, total:23.90, status:"pending", payment_status:"unpaid", created_at:new Date(Date.now()-1800000).toISOString(), items:[{name:"Papini",quantity:1,price:22},{name:"Pane integrale",quantity:2,price:5.50}] },
+  { id:2844, customer_name:"Elena Neri", customer_phone:"+39 347 1122334", customer_email:"elena@email.com", delivery_method:"pickup", pickup_time:"Domani 07:00-10:00", notes:"", subtotal:25, shipping:0, total:25, status:"completed", payment_status:"paid", created_at:new Date(Date.now()-86400000).toISOString(), items:[{name:"Biscotti di Mandorle",quantity:1,price:25}] },
+  { id:2843, customer_name:"Paolo Gialli", customer_phone:"+39 339 9988776", customer_email:"paolo@email.com", delivery_method:"reservation", pickup_time:"", notes:"Volevo sapere se avete il pane di segale disponibile", subtotal:12, shipping:0, total:12, status:"pending", payment_status:"unpaid", created_at:new Date(Date.now()-3600000).toISOString(), items:[{name:"Pane di segale",quantity:2,price:6}] },
 ];
 
 const DEMO_CONTENT = [
   { id:1, section:"hero", key:"hero_slogan", value_it:"L'autentico sapore di Chioggia", value_en:"The authentic taste of Chioggia" },
   { id:2, section:"seo", key:"seo_title", value_it:"Panificio Da Sergio — Chioggia dal 1977", value_en:"Panificio Da Sergio — Chioggia since 1977" },
+];
+
+const DEMO_SETTINGS = [
+  { id:101, section:"_setting", key:"social_facebook", value_it:"https://www.facebook.com/p/Panificio-da-Sergio-Chioggia-100057410531710", value_en:"" },
+  { id:102, section:"_setting", key:"social_instagram", value_it:"", value_en:"" },
+  { id:103, section:"_setting", key:"social_tripadvisor", value_it:"https://www.tripadvisor.it/Restaurant_Review-g194738-d7005470-Reviews-Panificio_da_Sergio-Chioggia_Veneto.html", value_en:"" },
+  { id:104, section:"_setting", key:"social_google_reviews", value_it:"https://share.google/3atabYNGXSHpAWi9S", value_en:"" },
+  { id:105, section:"_setting", key:"social_whatsapp", value_it:"39041401200", value_en:"" },
+  { id:106, section:"_setting", key:"business_address", value_it:"Calle Ponte Caneva 626, 30015 Chioggia (VE)", value_en:"" },
+  { id:107, section:"_setting", key:"business_phone", value_it:"+39 041401200", value_en:"" },
+  { id:108, section:"_setting", key:"business_email", value_it:"giraldoalessandro1@gmail.com", value_en:"" },
+  { id:109, section:"_setting", key:"business_website", value_it:"www.panificiodasergio.com", value_en:"" },
+  { id:110, section:"_setting", key:"business_hours_mon_fri", value_it:"10:00 - 19:00", value_en:"" },
+  { id:111, section:"_setting", key:"business_hours_sat", value_it:"10:00 - 19:00", value_en:"" },
+  { id:112, section:"_setting", key:"business_hours_sun", value_it:"10:00 - 19:00", value_en:"" },
+  { id:113, section:"_setting", key:"analytics_ga_id", value_it:"", value_en:"" },
+  { id:114, section:"_setting", key:"analytics_meta_pixel", value_it:"", value_en:"" },
+  { id:115, section:"_setting", key:"seo_og_image", value_it:"/images/og-image.svg", value_en:"" },
+  { id:116, section:"_setting", key:"seo_og_title", value_it:"Panificio Da Sergio — Tradizione con Passione dal 1977", value_en:"" },
+  { id:117, section:"_setting", key:"seo_og_description", value_it:"Pane fresco, biscotti artigianali e dolci tradizionali veneziani a Chioggia. Dal 1977 portiamo il sapore autentico dell'artigianalità sulle vostre tavole.", value_en:"" },
 ];
 
 // ── Storage helpers ──
@@ -208,7 +228,7 @@ export async function updateSiteContent(id, value_it, value_en) {
 // ── SITE SETTINGS ──
 
 export async function getSiteSettings() {
-  if (!isConfigured) return loadLocal('settings', []);
+  if (!isConfigured) return loadLocal('settings', DEMO_SETTINGS);
   var result = await supabase.from('site_content').select('*').eq('section', '_setting').order('key', { ascending: true });
   if (result.error) throw result.error;
   return result.data;
@@ -216,9 +236,15 @@ export async function getSiteSettings() {
 
 export async function updateSiteSetting(id, value) {
   if (!isConfigured) {
-    var settings = loadLocal('settings', []);
+    var settings = loadLocal('settings', DEMO_SETTINGS);
     var idx = settings.findIndex(function(s) { return s.id === id; });
-    if (idx === -1) throw new Error('Impostazione non trovata');
+    if (idx === -1) {
+      // Auto-create if not found (e.g. new setting added after demo load)
+      var fallback = DEMO_SETTINGS.find(function(s) { return s.id === id; }) || { id: id, section: '_setting', key: 'unknown', value_it: '', value_en: '' };
+      settings.push({ ...fallback, value_it: value, value_en: value, updated_at: new Date().toISOString() });
+      saveLocal('settings', settings);
+      return settings[settings.length - 1];
+    }
     settings[idx] = { ...settings[idx], value_it: value, value_en: value, updated_at: new Date().toISOString() };
     saveLocal('settings', settings);
     return settings[idx];

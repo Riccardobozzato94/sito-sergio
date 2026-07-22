@@ -124,7 +124,8 @@ export default function AdminProducts() {
 
   async function handleSave() {
     if (!form.name.trim()) { setError('Il nome è obbligatorio'); return; }
-    if (!form.price || form.price <= 0) { setError('Il prezzo deve essere maggiore di 0'); return; }
+    const priceNum = parseFloat(form.price);
+    if (isNaN(priceNum) || priceNum <= 0) { setError('Il prezzo deve essere maggiore di 0'); return; }
     setError('');
     setSaving(true);
     try {

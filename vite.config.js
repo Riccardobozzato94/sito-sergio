@@ -3,8 +3,8 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig({
-  // GitHub Pages: '/sito-sergio/' | Vercel/Netlify: '/'
-  base: '/',
+  // Per GitHub Pages — vedi .github/workflows/deploy.yml
+  base: '/sito-sergio/',
   plugins: [react(), tailwindcss()],
 
   // ── Security headers for the Vite dev server ─────────────────────────────

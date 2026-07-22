@@ -7,4 +7,4 @@ Disallow: /confirmation
 Disallow: /#/privacy
 
 # Sitemap
-Sitemap: https://www.panificiodasergio.it/sitemap.xml
+Sitemap: https://panificiodasergio.it/sitemap.xml

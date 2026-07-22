@@ -73,7 +73,7 @@
       "image": "https://www.panificiodasergio.it/images/storefront.jpg",
       "url": "https://www.panificiodasergio.it",
       "telephone": "+39041401200",
-      "email": "info@panificiodasergio.it",
+      "email": "giraldoalessandro1@gmail.com",
       "priceRange": "€",
       "cuisine": ["Italian", "Venetian", "Bakery"],
       "servesCuisine": "Venetian Bakery",
@@ -177,8 +177,9 @@
 
     <!--
     ═══════════════════════════════════════════════════════════
-    ANALYTICS & TRACKING — Uncomment and replace IDs
-    These only activate after user cookie consent via CookieBanner.
+    ANALYTICS & TRACKING — Caricato dinamicamente da GASetup.jsx
+    quando l'ID GA è configurato nelle impostazioni del database.
+    Il CookieBanner gestisce il consenso prima dell'attivazione.
     ═══════════════════════════════════════════════════════════
     -->
 
@@ -190,46 +191,5 @@
         });
       }
     </script>
-
-    <!-- Google Analytics (gtag.js) -->
-    <!--
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-XXXXXXXXXX', {
-        'anonymize_ip': true,
-        'cookie_flags': 'SameSite=None;Secure'
-      });
-      // Default: deny until consent
-      gtag('consent', 'default', {
-        'analytics_storage': 'denied',
-        'ad_storage': 'denied',
-        'wait_for_update': 500
-      });
-    </script>
-    -->
-
-    <!-- Meta Pixel -->
-    <!--
-    <script>
-      !function(f,b,e,v,n,t,s){
-        if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-        n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-        if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-        n.queue=[];t=b.createElement(e);t.async=!0;
-        t.src=v;s=b.getElementsByTagName(e)[0];
-        s.parentNode.insertBefore(t,s)}(window, document,'script',
-        'https://connect.facebook.net/en_US/fbevents.js');
-      fbq('init', 'YOUR_PIXEL_ID');
-      // Default: revoke until consent
-      fbq('consent', 'revoke');
-    </script>
-    <noscript>
-      <img height="1" width="1" style="display:none"
-        src="https://www.facebook.com/tr?id=YOUR_PIXEL_ID&ev=PageView&noscript=1"/>
-    </noscript>
-    -->
   </body>
 </html>

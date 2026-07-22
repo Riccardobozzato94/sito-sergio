@@ -16,6 +16,7 @@ export const BUSINESS = {
   email: "giraldoalessandro1@gmail.com",
   whatsappNumber: "39041401200",
   website: "www.panificiodasergio.com",
+  partitaIva: "03729280275",
   cutoffHour: 18,       // Ora limite per ordini (ritiro giorno dopo)
   cutoffMinute: 0,
   minOrderAmount: 5,     // Ordine minimo in EUR

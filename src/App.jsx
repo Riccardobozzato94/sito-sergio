@@ -16,6 +16,7 @@ import CartDrawer from './components/CartDrawer';
 import CartToast from './components/CartToast';
 import PrivacyPolicy from './components/PrivacyPolicy';
 import CookieBanner from './components/CookieBanner';
+import GASetup from './components/GASetup';
 import ProtectedRoute from './components/ProtectedRoute';
 import Checkout from './pages/Checkout';
 import Confirmation from './pages/Confirmation';
@@ -279,13 +280,14 @@ function CartProvider({ children }) {
   };
 
   return (
-    <SettingsContext.Provider value={{ settings, contentLoaded, settingsRows }}>
-      <LangContext.Provider value={{ lang, setLang, t }}>
-        <CartContext.Provider value={contextValue}>
-          {children}
-        </CartContext.Provider>
-      </LangContext.Provider>
-    </SettingsContext.Provider>
+      <SettingsContext.Provider value={{ settings, contentLoaded, settingsRows }}>
+        <LangContext.Provider value={{ lang, setLang, t }}>
+          <CartContext.Provider value={contextValue}>
+            <GASetup />
+            {children}
+          </CartContext.Provider>
+        </LangContext.Provider>
+      </SettingsContext.Provider>
   );
 }
 

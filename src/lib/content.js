@@ -121,6 +121,7 @@ const SETTINGS_KEY_MAP = {
   business_phone: 'BUSINESS.phone',
   business_email: 'BUSINESS.email',
   business_website: 'BUSINESS.website',
+  business_partita_iva: 'BUSINESS.partitaIva',
 };
 
 // ── SECTION GROUPS for organizing the admin panel ──
@@ -218,7 +219,14 @@ export function mergeSettings(settingsRows) {
       case 'business_phone': merged.business.phone = value || BUSINESS.phone; break;
       case 'business_email': merged.business.email = value || BUSINESS.email; break;
       case 'business_website': merged.business.website = value || BUSINESS.website; break;
-      case 'business_hours_mon_fri': merged.hours[0].hours = value || HOURS[0].hours; break;
+      case 'business_partita_iva': merged.business.partitaIva = value || BUSINESS.partitaIva; break;
+      case 'business_hours_mon': merged.hours[0].hours = value || HOURS[0].hours; break;
+      case 'business_hours_mon_fri':
+        // Set Tue-Fri (indices 1-4), keep Lunedì (index 0) unchanged
+        for (let i = 1; i < 5; i++) {
+          if (merged.hours[i]) merged.hours[i].hours = value || HOURS[i].hours;
+        }
+        break;
       case 'business_hours_sat': merged.hours[5].hours = value || HOURS[5].hours; break;
       case 'business_hours_sun': merged.hours[6].hours = value || HOURS[6].hours; break;
       case 'analytics_ga_id': merged.analytics.gaId = value; break;
@@ -232,12 +240,12 @@ export function mergeSettings(settingsRows) {
   return merged;
 }
 
-// ── Update hours weekday labels (Mon-Fri) ──
+// ── Update hours weekday labels (Tue-Fri) — keeps Lunedì (index 0) unchanged ──
 export function updateWeekdayHours(settings, newValue) {
-  const dayLabels = ['Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì'];
-  const enLabels = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+  const dayLabels = ['Martedì', 'Mercoledì', 'Giovedì', 'Venerdì'];
+  const enLabels = ['Tuesday', 'Wednesday', 'Thursday', 'Friday'];
   const updated = [...settings.hours];
-  for (let i = 0; i < 5; i++) {
+  for (let i = 1; i < 5; i++) {
     if (updated[i]) {
       updated[i] = { ...updated[i], hours: newValue };
     }

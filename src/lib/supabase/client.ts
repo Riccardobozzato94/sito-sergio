@@ -52,8 +52,8 @@ function createDummyClient() {
 export const supabase = isConfigured
   ? createClient(supabaseUrl, supabaseAnonKey, {
       auth: {
-        persistSession: false,
-        autoRefreshToken: false,
+        persistSession: true,
+        autoRefreshToken: true,
       },
     })
   : createDummyClient();

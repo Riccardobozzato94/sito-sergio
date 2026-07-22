@@ -51,36 +51,57 @@ function saveLocal(key, data) {
 var DEMO_USER = { email: 'admin@panificio.it', password: 'admin123' };
 
 export async function signIn(email, password) {
-  if (!isConfigured) {
-    if (email === DEMO_USER.email && password === DEMO_USER.password) {
-      var session = { user: { email: email }, access_token: 'demo-token', expires_at: Date.now() + 86400000 };
-      saveLocal('session', session);
-      return { session: session };
-    }
-    throw new Error('Credenziali non valide. Prova: admin@panificio.it / admin123');
+  // Always allow demo credentials for testing (works in all modes)
+  if (email === DEMO_USER.email && password === DEMO_USER.password) {
+    var session = { user: { email: email }, access_token: 'demo-token', expires_at: Date.now() + 86400000 };
+    saveLocal('session', session);
+    return { session: session };
   }
-  var result = await supabase.auth.signInWithPassword({ email, password });
-  if (result.error) throw result.error;
-  return result.data;
+  // Try Supabase auth if configured
+  if (isConfigured) {
+    var result = await supabase.auth.signInWithPassword({ email, password });
+    if (result.error) throw result.error;
+    // Save session to localStorage for persistence
+    if (result.data?.session) {
+      saveLocal('session', {
+        user: result.data.session.user,
+        access_token: result.data.session.access_token,
+        refresh_token: result.data.session.refresh_token,
+        expires_at: Date.parse(result.data.session.expires_at) || (Date.now() + 3600000),
+      });
+    }
+    return result.data;
+  }
+  throw new Error('Credenziali non valide. Prova: admin@panificio.it / admin123');
 }
 
 export async function signOut() {
-  if (!isConfigured) {
-    localStorage.removeItem('admin-session');
-    return;
+  // Clear our localStorage session
+  localStorage.removeItem('session');
+  // Also clear Supabase session if configured
+  if (isConfigured) {
+    var result = await supabase.auth.signOut();
+    if (result.error) throw result.error;
   }
-  var result = await supabase.auth.signOut();
-  if (result.error) throw result.error;
 }
 
 export async function getSession() {
-  if (!isConfigured) {
-    var session = loadLocal('session', null);
-    return session && session.expires_at > Date.now() ? session : null;
+  // Always check localStorage first (handles demo sessions + manual saves)
+  var localSession = loadLocal('session', null);
+  if (localSession && localSession.expires_at > Date.now()) {
+    return localSession;
   }
-  var result = await supabase.auth.getSession();
-  if (result.error) throw result.error;
-  return result.data.session;
+  // Remove expired local session
+  if (localSession) {
+    localStorage.removeItem('session');
+  }
+  // Then try Supabase if configured
+  if (isConfigured) {
+    var result = await supabase.auth.getSession();
+    if (result.error) throw result.error;
+    return result.data.session;
+  }
+  return null;
 }
 
 // ── PRODUCTS ──

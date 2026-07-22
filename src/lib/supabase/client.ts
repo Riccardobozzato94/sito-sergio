@@ -122,7 +122,7 @@ export async function getProducts(category?: ProductCategory) {
 
   let query = supabase
     .from('products')
-    .select('id, name, slug, description, category, price, unit, image_url, is_available, is_featured, allergens, dietary, ingredients, display_order, stock_weight_kg')
+    .select('id, name, slug, description, category, price, unit, image_url, is_available, is_featured, allergens, display_order, stock_weight_kg')
     .eq('is_available', true)
     .order('display_order', { ascending: true });
 

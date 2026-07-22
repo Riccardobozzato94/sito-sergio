@@ -13,7 +13,7 @@ export const BUSINESS = {
   since: "1977",
   address: "Calle Ponte Caneva 626, 30015 Chioggia (VE)",
   phone: "+39 041401200",
-  email: "info@panificiodasergio.it",
+  email: "giraldoalessandro1@gmail.com",
   whatsappNumber: "39041401200",
   website: "www.panificiodasergio.com",
   cutoffHour: 18,       // Ora limite per ordini (ritiro giorno dopo)

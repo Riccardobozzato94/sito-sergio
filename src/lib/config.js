@@ -29,13 +29,13 @@ export const BUSINESS = {
 };
 
 export const HOURS = [
-  { day: "Lunedì", hours: "10:00 - 19:00" },
+  { day: "Lunedì", hours: "Chiuso" },
   { day: "Martedì", hours: "10:00 - 19:00" },
   { day: "Mercoledì", hours: "10:00 - 19:00" },
   { day: "Giovedì", hours: "10:00 - 19:00" },
   { day: "Venerdì", hours: "10:00 - 19:00" },
   { day: "Sabato", hours: "10:00 - 19:00" },
-  { day: "Domenica", hours: "Chiuso" },
+  { day: "Domenica", hours: "10:00 - 19:00" },
 ];
 
 export const SOCIAL = {

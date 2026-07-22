@@ -42,86 +42,116 @@ export default function Header({ cartCount, onCartClick, activeSection }) {
   ];
 
   return (
-    <header
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
-        scrolled
-          ? 'bg-[#1a1410]/80 backdrop-blur-2xl shadow-xl shadow-black/50 border-b border-white/[0.05]'
-          : 'bg-transparent'
-      }`}
-    >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16 sm:h-20">
+    <>
+      <header
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
+          scrolled
+            ? 'bg-[#1a1410]/80 backdrop-blur-2xl shadow-xl shadow-black/50 border-b border-white/[0.05]'
+            : 'bg-transparent'
+        }`}
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16 sm:h-20">
 
-          {/* ═══ Mobile Hamburger ═══ */}
-          <div className="flex items-center gap-2">
-            <button
-              className="text-primary/80 hover:text-primary p-2 rounded-lg transition-all duration-200 hover:bg-white/[0.04] lg:hidden"
-              onClick={() => setMenuOpen(!menuOpen)}
-              aria-label={t.header_menu}
-            >
-              {menuOpen ? <X size={22} /> : <Menu size={22} />}
-            </button>
-          </div>
-
-          {/* ═══ Centered Logo ═══ */}
-          <div className="absolute left-1/2 -translate-x-1/2">
-            <button
-              onClick={() => scrollToSection('home')}
-              className="text-center group"
-              aria-label={t.header_back_home}
-            >
-              <div className="flex flex-col items-center leading-none">
-                <span className="font-heading text-lg sm:text-xl lg:text-2xl text-primary tracking-[0.12em] group-hover:text-primary-light transition-colors duration-300">
-                  PANIFICIO DA SERGIO
-                </span>
-                  <span className={`hidden sm:block text-[10px] tracking-[0.25em] uppercase text-text-dim mt-1 transition-opacity duration-300 ${scrolled ? 'opacity-60' : 'opacity-100'}`}>
-                    {t.hero_slogan} · {t.nav_contatti === 'Contatti' || t.nav_contatti === 'Contact' ? 'Chioggia' : ''}
-                  </span>
-              </div>
-            </button>
-          </div>
-
-          {/* ═══ Right: Cart + Lang ═══ */}
-          <div className="flex items-center gap-1 ml-auto lg:ml-0">
-            {/* Language Toggle (desktop) */}
-            <div className="hidden sm:flex items-center gap-0.5 mr-2 bg-white/[0.04] rounded-full p-0.5 border border-white/[0.06]">
-              {LANGUAGES.map((l) => (
-                <button
-                  key={l.code}
-                  onClick={() => setLang(l.code)}
-                  className={`px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all duration-200 ${
-                    lang === l.code
-                      ? 'bg-primary text-bg'
-                      : 'text-text-dim hover:text-primary'
-                  }`}
-                  aria-label={l.name}
-                >
-                  {l.label}
-                </button>
-              ))}
+            {/* ═══ Mobile Hamburger ═══ */}
+            <div className="flex items-center gap-2">
+              <button
+                className="text-primary/80 hover:text-primary p-2 rounded-lg transition-all duration-200 hover:bg-white/[0.04] lg:hidden"
+                onClick={() => setMenuOpen(!menuOpen)}
+                aria-label={t.header_menu}
+              >
+                {menuOpen ? <X size={22} /> : <Menu size={22} />}
+              </button>
             </div>
 
-            {/* Cart Button */}
-            <button
-              className="relative text-primary/80 hover:text-primary p-2 rounded-lg transition-all duration-200 hover:bg-white/[0.04]"
-              onClick={onCartClick}
-              aria-label={t.header_cart}
-            >
-              <ShoppingBag size={20} />
-              {cartCount > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 bg-primary text-bg text-[10px] font-bold w-4.5 h-4.5 min-w-[18px] rounded-full flex items-center justify-center animate-scale-in">
-                  {cartCount}
-                </span>
-              )}
-            </button>
+            {/* ═══ Centered Logo ═══ */}
+            <div className="absolute left-1/2 -translate-x-1/2">
+              <button
+                onClick={() => scrollToSection('home')}
+                className="text-center group"
+                aria-label={t.header_back_home}
+              >
+                <div className="flex flex-col items-center leading-none">
+                  <span className="font-heading text-lg sm:text-xl lg:text-2xl text-primary tracking-[0.12em] group-hover:text-primary-light transition-colors duration-300">
+                    PANIFICIO DA SERGIO
+                  </span>
+                    <span className={`hidden sm:block text-[10px] tracking-[0.25em] uppercase text-text-dim mt-1 transition-opacity duration-300 ${scrolled ? 'opacity-60' : 'opacity-100'}`}>
+                      {t.hero_slogan} · {t.nav_contatti === 'Contatti' || t.nav_contatti === 'Contact' ? 'Chioggia' : ''}
+                    </span>
+                </div>
+              </button>
+            </div>
+
+            {/* ═══ Right: Cart + Lang ═══ */}
+            <div className="flex items-center gap-1 ml-auto lg:ml-0">
+              {/* Language Toggle (desktop) */}
+              <div className="hidden sm:flex items-center gap-0.5 mr-2 bg-white/[0.04] rounded-full p-0.5 border border-white/[0.06]">
+                {LANGUAGES.map((l) => (
+                  <button
+                    key={l.code}
+                    onClick={() => setLang(l.code)}
+                    className={`px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all duration-200 ${
+                      lang === l.code
+                        ? 'bg-primary text-bg'
+                        : 'text-text-dim hover:text-primary'
+                    }`}
+                    aria-label={l.name}
+                  >
+                    {l.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Cart Button */}
+              <button
+                className="relative text-primary/80 hover:text-primary p-2 rounded-lg transition-all duration-200 hover:bg-white/[0.04]"
+                onClick={onCartClick}
+                aria-label={t.header_cart}
+              >
+                <ShoppingBag size={20} />
+                {cartCount > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 bg-primary text-bg text-[10px] font-bold w-4.5 h-4.5 min-w-[18px] rounded-full flex items-center justify-center animate-scale-in">
+                    {cartCount}
+                  </span>
+                )}
+              </button>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* ═══ Mobile Full-Screen Menu ═══ */}
+        {/* ═══ Desktop Navigation Bar ═══ */}
+        <nav className="hidden lg:block border-t border-white/[0.04]">
+          <div className="max-w-7xl mx-auto px-8">
+            <div className="flex justify-center items-center gap-10 h-11">
+              {navItems.map((link) => {
+                const isActive = activeSection === link.id;
+                return (
+                  <button
+                    key={link.id}
+                    onClick={() => scrollToSection(link.id)}
+                    className={`text-[11px] tracking-[0.22em] uppercase transition-colors duration-300 relative group ${
+                      isActive
+                        ? 'text-primary'
+                        : 'text-text-dim hover:text-primary'
+                    }`}
+                  >
+                    {link.label}
+                    <span className={`absolute -bottom-0.5 left-1/2 -translate-x-1/2 h-px bg-primary transition-all duration-300 ${
+                      isActive ? 'w-full' : 'w-0 group-hover:w-full'
+                    }`} />
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </nav>
+      </header>
+
+      {/* ═══ Mobile Full-Screen Menu (fuori dall'header per stacking corretto) ═══ */}
       {menuOpen && (
-        <div ref={menuFocusTrapRef} className="lg:hidden fixed inset-0 top-16 z-40 bg-[#1a1410]/98 backdrop-blur-2xl animate-fade-in" tabIndex={-1}>
-          <nav className="flex flex-col items-center justify-center h-full gap-2 px-8">
+        <div ref={menuFocusTrapRef} className="lg:hidden fixed inset-0 top-0 z-[60] bg-[#1a1410]/98 backdrop-blur-2xl animate-fade-in" tabIndex={-1}>
+          <div className="h-16" /> {/* spacer per header */}
+          <nav className="flex flex-col items-center justify-start h-full gap-2 px-8 pt-8 overflow-y-auto">
             {navItems.map((link, i) => (
               <button
                 key={link.id}
@@ -164,33 +194,6 @@ export default function Header({ cartCount, onCartClick, activeSection }) {
           </nav>
         </div>
       )}
-
-      {/* ═══ Desktop Navigation Bar ═══ */}
-      <nav className="hidden lg:block border-t border-white/[0.04]">
-        <div className="max-w-7xl mx-auto px-8">
-          <div className="flex justify-center items-center gap-10 h-11">
-            {navItems.map((link) => {
-              const isActive = activeSection === link.id;
-              return (
-                <button
-                  key={link.id}
-                  onClick={() => scrollToSection(link.id)}
-                  className={`text-[11px] tracking-[0.22em] uppercase transition-colors duration-300 relative group ${
-                    isActive
-                      ? 'text-primary'
-                      : 'text-text-dim hover:text-primary'
-                  }`}
-                >
-                  {link.label}
-                  <span className={`absolute -bottom-0.5 left-1/2 -translate-x-1/2 h-px bg-primary transition-all duration-300 ${
-                    isActive ? 'w-full' : 'w-0 group-hover:w-full'
-                  }`} />
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      </nav>
-    </header>
+    </>
   );
 }

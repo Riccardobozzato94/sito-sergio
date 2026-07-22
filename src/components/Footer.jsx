@@ -178,6 +178,9 @@ export default function Footer() {
           <p className="text-text-dim text-xs">
             {t.copyright?.(year) || `© ${year} ${BUSINESS.name}. ${t.footer_copyright}`}
           </p>
+          <p className="text-text-dim text-[10px] mt-1">
+            P.IVA 03729280275
+          </p>
           <div className="mt-3 flex flex-wrap justify-center gap-4 text-xs">
             <a href="#privacy" className="text-text-dim hover:text-primary transition-colors">Privacy & Cookie Policy</a>
           </div>

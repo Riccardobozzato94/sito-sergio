@@ -1,7 +1,10 @@
 User-agent: *
 Allow: /
 Disallow: /admin
+Disallow: /admin/
 Disallow: /checkout
 Disallow: /confirmation
+Disallow: /#/privacy
 
+# Sitemap
 Sitemap: https://www.panificiodasergio.it/sitemap.xml

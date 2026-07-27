@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { createBrowserClient } from '@/lib/supabase-client';
 import { useToast } from '@/components/ToastProvider';
 import { Search } from 'lucide-react';
@@ -12,34 +12,107 @@ interface InventoryRow {
   products: { name: string; low_stock_threshold_kg: number } | null;
 }
 
+const NUMERIC_FIELDS = ['quantity_in_kg', 'quantity_sold_kg', 'wasted_kg', 'restocked_kg'] as const;
+
 export default function InventoryPage() {
   const [rows, setRows] = useState<InventoryRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [search, setSearch] = useState('');
+  const [dirtyFields, setDirtyFields] = useState<Record<string, Record<string, string | number>>>({});
   const { success, error: toastError } = useToast();
 
-  async function load() {
+  const load = useCallback(async () => {
     setLoading(true);
     const supabase = createBrowserClient();
-    const { data } = await supabase
+    const { data, error: fetchError } = await supabase
       .from('inventory')
       .select('*, products(name, low_stock_threshold_kg)')
       .eq('date', date)
       .order('id', { ascending: true });
-    setRows(data || []);
+    if (fetchError) {
+      toastError('Errore caricamento', fetchError.message);
+      setRows([]);
+    } else {
+      setRows(data || []);
+    }
+    setDirtyFields({});
     setLoading(false);
-  }
+  }, [date, toastError]);
 
-  useEffect(() => { load(); }, [date]);
+  useEffect(() => { load(); }, [load]);
 
-  async function updateField(id: number, field: string, value: number) {
+  const updateField = useCallback(async (id: number, field: string, value: number) => {
     const supabase = createBrowserClient();
     const { error } = await supabase.from('inventory').update({ [field]: value }).eq('id', id);
-    if (error) { toastError('Errore', error.message); return; }
+    if (error) { toastError('Errore aggiornamento', error.message); return; }
     setRows(prev => prev.map(r => r.id === id ? { ...r, [field]: value } : r));
-    success('Aggiornato', '');
-  }
+    setDirtyFields(prev => {
+      const next = { ...prev };
+      if (next[id]) {
+        delete next[id][field];
+        if (Object.keys(next[id]).length === 0) delete next[id];
+      }
+      return next;
+    });
+    success('Aggiornato', field === 'notes' ? 'Note salvate' : '');
+  }, [success, toastError]);
+
+  const updateNotes = useCallback(async (id: number, notes: string) => {
+    const supabase = createBrowserClient();
+    const { error } = await supabase.from('inventory').update({ notes }).eq('id', id);
+    if (error) { toastError('Errore salvataggio note', error.message); return; }
+    setRows(prev => prev.map(r => r.id === id ? { ...r, notes } : r));
+    setDirtyFields(prev => {
+      const next = { ...prev };
+      if (next[id]) {
+        delete next[id].notes;
+        if (Object.keys(next[id]).length === 0) delete next[id];
+      }
+      return next;
+    });
+    success('Note salvate', '');
+  }, [success, toastError]);
+
+  const handleNumericChange = (id: number, field: string, raw: string) => {
+    const val = raw === '' ? '' : parseFloat(raw);
+    setDirtyFields(prev => ({
+      ...prev,
+      [id]: { ...(prev[id] || {}), [field]: val },
+    }));
+  };
+
+  const handleNumericBlur = (id: number, field: string, originalValue: number) => {
+    const dirty = dirtyFields[id]?.[field];
+    if (dirty === undefined || dirty === '') return;
+    const numVal = typeof dirty === 'number' ? dirty : parseFloat(String(dirty));
+    if (!isNaN(numVal) && numVal !== originalValue) {
+      updateField(id, field, numVal);
+    }
+  };
+
+  const handleNotesChange = (id: number, value: string) => {
+    setDirtyFields(prev => ({
+      ...prev,
+      [id]: { ...(prev[id] || {}), notes: value },
+    }));
+  };
+
+  const handleNotesBlur = (id: number, originalNotes: string) => {
+    const dirty = dirtyFields[id]?.notes;
+    if (dirty === undefined || dirty === null) return;
+    const strVal = String(dirty);
+    if (strVal !== originalNotes) {
+      updateNotes(id, strVal);
+    }
+  };
+
+  const getDisplayValue = (row: InventoryRow, field: string) => {
+    const dirty = dirtyFields[row.id]?.[field];
+    if (dirty !== undefined) return String(dirty);
+    if (field === 'notes') return row.notes;
+    return Number(row[field as keyof InventoryRow] as number).toFixed(1);
+  };
 
   const filtered = rows.filter(r =>
     !search || r.products?.name?.toLowerCase().includes(search.toLowerCase())
@@ -120,15 +193,13 @@ export default function InventoryPage() {
                         </div>
                         <p className="text-[#5a5650] text-xs mt-0.5">Rimanenza: {remaining.toFixed(1)} kg</p>
                       </td>
-                      {(['quantity_in_kg', 'quantity_sold_kg', 'wasted_kg', 'restocked_kg'] as const).map(field => (
+                      {NUMERIC_FIELDS.map(field => (
                         <td key={field} className="px-5 py-4">
                           <input
                             type="number" min="0" step="0.1"
-                            defaultValue={Number(row[field]).toFixed(1)}
-                            onBlur={e => {
-                              const v = parseFloat(e.target.value);
-                              if (!isNaN(v) && v !== Number(row[field])) updateField(row.id, field, v);
-                            }}
+                            value={getDisplayValue(row, field)}
+                            onChange={e => handleNumericChange(row.id, field, e.target.value)}
+                            onBlur={() => handleNumericBlur(row.id, field, Number(row[field]))}
                             className="w-20 bg-[#0e0e0e] border border-[#2a2725] rounded-lg px-2 py-1.5 text-sm text-[#f0ece6] focus:outline-none focus:border-primary transition-colors"
                           />
                         </td>
@@ -136,14 +207,9 @@ export default function InventoryPage() {
                       <td className="px-5 py-4">
                         <input
                           type="text"
-                          defaultValue={row.notes}
-                          onBlur={e => {
-                            if (e.target.value !== row.notes) {
-                              const supabase = createBrowserClient();
-                              supabase.from('inventory').update({ notes: e.target.value }).eq('id', row.id);
-                              setRows(prev => prev.map(r => r.id === row.id ? { ...r, notes: e.target.value } : r));
-                            }
-                          }}
+                          value={getDisplayValue(row, 'notes')}
+                          onChange={e => handleNotesChange(row.id, e.target.value)}
+                          onBlur={() => handleNotesBlur(row.id, row.notes)}
                           className="w-32 bg-[#0e0e0e] border border-[#2a2725] rounded-lg px-2 py-1.5 text-xs text-[#9a9590] placeholder:text-[#5a5650] focus:outline-none focus:border-primary transition-colors"
                           placeholder="Note..."
                         />

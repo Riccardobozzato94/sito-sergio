@@ -22,23 +22,63 @@ if (!isConfigured) {
   );
 }
 
-// Dummy client that fails gracefully
+// Dummy client che supporta TUTTE le operazioni usate dall'app
 function createDummyClient() {
+  const makeQuery = (extra = {}) => ({
+    eq: () => makeQuery(extra),
+    neq: () => makeQuery(extra),
+    gte: () => makeQuery(extra),
+    lte: () => makeQuery(extra),
+    lt: () => makeQuery(extra),
+    order: () => Promise.resolve({ data: [], error: null, count: null }),
+    single: () => Promise.resolve({ data: null, error: null }),
+    limit: () => Promise.resolve({ data: [], error: null, count: null }),
+    select: () => makeQuery(extra),
+    ...extra,
+  });
+
   return {
     from: () => ({
-      select: () => ({
-        eq: () => ({
-          order: () => Promise.resolve({ data: [], error: null }),
+      select: () => makeQuery({
+        eq: () => makeQuery({
+          order: () => Promise.resolve({ data: [], error: null, count: null }),
           single: () => Promise.resolve({ data: null, error: null }),
+          limit: () => Promise.resolve({ data: [], error: null, count: null }),
         }),
         single: () => Promise.resolve({ data: null, error: null }),
+        order: () => Promise.resolve({ data: [], error: null, count: null }),
+        limit: () => Promise.resolve({ data: [], error: null, count: null }),
       }),
       insert: () => ({
         select: () => ({
           single: () => Promise.resolve({ data: null, error: null }),
         }),
       }),
+      update: () => ({
+        eq: () => ({
+          select: () => Promise.resolve({ data: [], error: null }),
+          single: () => Promise.resolve({ data: null, error: null }),
+        }),
+      }),
+      delete: () => ({
+        eq: () => ({
+          select: () => Promise.resolve({ data: [], error: null }),
+        }),
+      }),
     }),
+    auth: {
+      signInWithPassword: () => Promise.resolve({ data: { session: null }, error: null }),
+      signOut: () => Promise.resolve({ error: null }),
+      getUser: () => Promise.resolve({ data: { user: null }, error: null }),
+      getSession: () => Promise.resolve({ data: { session: null }, error: null }),
+      exchangeCodeForSession: () => Promise.resolve({ data: { session: null }, error: null }),
+    },
+    storage: {
+      from: () => ({
+        upload: () => Promise.resolve({ data: { path: '' }, error: null }),
+        getPublicUrl: () => ({ data: { publicUrl: '' } }),
+      }),
+    },
     channel: () => ({
       on: () => ({
         subscribe: () => ({ unsubscribe: () => {} }),

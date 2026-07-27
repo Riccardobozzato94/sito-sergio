@@ -92,7 +92,8 @@ export default function AdminProducts() {
   }, [products, search, statusFilter, categoryFilter]);
 
   function startNew() {
-    setForm({ ...emptyProduct, display_order: products.length + 1 });
+    const maxOrder = products.reduce((max, p) => Math.max(max, p.display_order || 0), 0);
+    setForm({ ...emptyProduct, display_order: maxOrder + 1 });
     setEditing('new');
     setError('');
   }
@@ -167,12 +168,18 @@ export default function AdminProducts() {
       return;
     }
     setUploading(true);
+    let uploadedUrl = null;
     try {
-      const url = await uploadProductImage(file, editing);
-      await updateProduct(editing, { image_url: url });
-      setForm((f) => ({ ...f, image_url: url }));
+      uploadedUrl = await uploadProductImage(file, editing);
+      await updateProduct(editing, { image_url: uploadedUrl });
+      setForm((f) => ({ ...f, image_url: uploadedUrl }));
       await loadProducts();
     } catch (err) {
+      // Se l'upload è riuscito ma l'update è fallito, il file è orfano nello storage
+      // (non possiamo cancellarlo facilmente senza admin SDK, ma almeno logghiamo)
+      if (uploadedUrl) {
+        console.warn('[Admin] Immagine caricata ma non associata al prodotto:', uploadedUrl);
+      }
       setError(err.message || 'Errore upload immagine');
     } finally { setUploading(false); }
   }

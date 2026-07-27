@@ -100,33 +100,6 @@ function MainSite() {
     return () => window.removeEventListener('scroll', updateActiveSection);
   }, [updateActiveSection]);
 
-  // ── Privacy Policy route ──
-  useEffect(() => {
-    const hash = window.location.hash;
-    if (hash === '#/privacy') {
-      setShowPrivacy(true);
-    }
-    const onHashChange = () => {
-      if (window.location.hash === '#/privacy') {
-        setShowPrivacy(true);
-      }
-    };
-    window.addEventListener('hashchange', onHashChange);
-    return () => window.removeEventListener('hashchange', onHashChange);
-  }, []);
-
-  if (showPrivacy) {
-    return (
-      <LangContext.Provider value={{ lang, setLang, t }}>
-        <PrivacyPolicy onBack={() => {
-          setShowPrivacy(false);
-          window.location.hash = '#/';
-        }} />
-        <CookieBanner />
-      </LangContext.Provider>
-    );
-  }
-
   return (
     <>
       <div className="min-h-screen bg-bg mobile-bottom-padding">
@@ -323,20 +296,15 @@ export default function App() {
 
 // ═══ Page wrappers ═══
 function PrivacyPolicyPage() {
-  const { lang, setLang, t } = useCart();
   return (
-    <LangContext.Provider value={{ lang, setLang, t }}>
+    <>
       <PrivacyPolicy onBack={() => window.location.hash = '#/'} />
       <CookieBanner />
-    </LangContext.Provider>
+    </>
   );
 }
 
 function CheckoutPage() {
-  const { lang, setLang, t, cart, clearCart } = useCart();
-  return (
-    <LangContext.Provider value={{ lang, setLang, t }}>
-      <Checkout cart={cart} onClearCart={clearCart} />
-    </LangContext.Provider>
-  );
+  const { cart, clearCart } = useCart();
+  return <Checkout cart={cart} onClearCart={clearCart} />;
 }

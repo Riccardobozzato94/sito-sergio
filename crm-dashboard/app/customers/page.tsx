@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { createBrowserClient } from '@/lib/supabase-client';
 import { useToast } from '@/components/ToastProvider';
 import CustomerForm from '@/components/CustomerForm';
@@ -470,9 +470,8 @@ export default function CustomersPage() {
               </thead>
               <tbody>
                 {filtered.map(customer => (
-                  <>
+                  <React.Fragment key={customer.id}>
                     <tr
-                      key={customer.id}
                       className={`border-b border-[#2a2725]/30 transition-colors ${
                         selectedIds.has(customer.id) ? 'bg-primary/5' : 'hover:bg-white/[0.015]'
                       }`}
@@ -574,7 +573,7 @@ export default function CustomersPage() {
                         </td>
                       </tr>
                     )}
-                  </>
+                  </React.Fragment>
                 ))}
               </tbody>
             </table>

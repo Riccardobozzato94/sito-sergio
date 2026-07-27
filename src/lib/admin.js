@@ -54,34 +54,65 @@ const DEMO_SETTINGS = [
   { id:117, section:"_setting", key:"seo_og_description", value_it:"Pane fresco, biscotti artigianali e dolci tradizionali veneziani a Chioggia. Dal 1977 portiamo il sapore autentico dell'artigianalità sulle vostre tavole.", value_en:"" },
 ];
 
+// ── Shared utility ──
+
+/** Genera slug URL-safe da testo italiano (gestisce accenti) */
+function generateSlug(name) {
+  return (name || '')
+    .toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')  // rimuove accenti (à→a, è→e, ecc.)
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 100);
+}
+
+// ── Allowed columns per le operazioni CRUD sui prodotti ──
+const PRODUCT_ALLOWED_COLUMNS = [
+  'name', 'slug', 'description', 'category', 'price', 'unit',
+  'image_url', 'is_available', 'is_featured', 'allergens',
+  'dietary', 'ingredients',
+  'stock_weight_kg', 'low_stock_threshold_kg', 'display_order',
+];
+
+/** Filtra un oggetto tenendo solo le colonne consentite per la tabella products */
+function sanitizeProductPayload(payload) {
+  const safe = {};
+  PRODUCT_ALLOWED_COLUMNS.forEach(function(col) {
+    if (col in payload && payload[col] !== undefined) {
+      safe[col] = payload[col];
+    }
+  });
+  return safe;
+}
+
 // ── Storage helpers ──
 
 function loadLocal(key, fallback) {
   try {
-    var data = localStorage.getItem('admin-' + key);
+    const data = localStorage.getItem('admin-' + key);
     if (data) return JSON.parse(data);
-  } catch(e) {}
+  } catch(e) { /* ignore */ }
   return fallback;
 }
 
 function saveLocal(key, data) {
-  try { localStorage.setItem('admin-' + key, JSON.stringify(data)); } catch(e) {}
+  try { localStorage.setItem('admin-' + key, JSON.stringify(data)); } catch(e) { /* ignore */ }
 }
 
 // ── AUTH ──
 
-var DEMO_USER = { email: 'admin@panificio.it', password: 'admin123' };
+const DEMO_USER = { email: 'admin@panificio.it', password: 'admin123' };
 
 export async function signIn(email, password) {
   // Always allow demo credentials for testing (works in all modes)
   if (email === DEMO_USER.email && password === DEMO_USER.password) {
-    var session = { user: { email: email }, access_token: 'demo-token', expires_at: Date.now() + 86400000 };
+    const session = { user: { email: email }, access_token: 'demo-token', expires_at: Date.now() + 86400000 };
     saveLocal('session', session);
     return { session: session };
   }
   // Try Supabase auth if configured
   if (isConfigured) {
-    var result = await supabase.auth.signInWithPassword({ email, password });
+    const result = await supabase.auth.signInWithPassword({ email, password });
     if (result.error) throw result.error;
     // Save session to localStorage for persistence
     if (result.data?.session) {
@@ -98,28 +129,23 @@ export async function signIn(email, password) {
 }
 
 export async function signOut() {
-  // Clear our localStorage session
   localStorage.removeItem('session');
-  // Also clear Supabase session if configured
   if (isConfigured) {
-    var result = await supabase.auth.signOut();
+    const result = await supabase.auth.signOut();
     if (result.error) throw result.error;
   }
 }
 
 export async function getSession() {
-  // Always check localStorage first (handles demo sessions + manual saves)
-  var localSession = loadLocal('session', null);
+  const localSession = loadLocal('session', null);
   if (localSession && localSession.expires_at > Date.now()) {
     return localSession;
   }
-  // Remove expired local session
   if (localSession) {
     localStorage.removeItem('session');
   }
-  // Then try Supabase if configured
   if (isConfigured) {
-    var result = await supabase.auth.getSession();
+    const result = await supabase.auth.getSession();
     if (result.error) throw result.error;
     return result.data.session;
   }
@@ -130,87 +156,68 @@ export async function getSession() {
 
 export async function getProducts() {
   if (!isConfigured) return loadLocal('products', DEMO_PRODUCTS);
-  var result = await supabase.from('products').select('*').order('display_order', { ascending: true });
-  if (result.error) throw result.error;
-  return result.data;
+  const { data, error } = await supabase.from('products').select('*').order('display_order', { ascending: true });
+  if (error) throw error;
+  return data;
 }
 
 export async function createProduct(product) {
   if (!isConfigured) {
-    var products = loadLocal('products', DEMO_PRODUCTS);
-    var maxId = products.reduce(function(max, p) { return p.id > max ? p.id : max; }, 0);
-    var slug = product.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 100);
-    var newProduct = { ...product, id: maxId + 1, slug: slug };
+    const products = loadLocal('products', DEMO_PRODUCTS);
+    const maxId = products.reduce(function(max, p) { return p.id > max ? p.id : max; }, 0);
+    const slug = generateSlug(product.name);
+    const newProduct = { ...product, id: maxId + 1, slug: slug };
     products.push(newProduct);
     saveLocal('products', products);
     return newProduct;
   }
-  var slug = product.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 100);
 
-  // Invia solo colonne REALI della tabella
-  var allowedColumns = [
-    'name', 'slug', 'description', 'category', 'price', 'unit',
-    'image_url', 'is_available', 'is_featured', 'allergens',
-    'dietary', 'ingredients',
-    'stock_weight_kg', 'low_stock_threshold_kg', 'display_order',
-  ];
-  var safeProduct = { slug: slug };
-  allowedColumns.forEach(function(col) {
-    if (col !== 'slug' && col in product) {
-      safeProduct[col] = product[col];
-    }
-  });
+  const slug = generateSlug(product.name);
+  const safeProduct = sanitizeProductPayload({ ...product, slug });
 
-  var result = await supabase.from('products').insert([safeProduct]).select().single();
-  if (result.error) throw result.error;
-  return result.data;
+  const { data, error } = await supabase.from('products').insert([safeProduct]).select().single();
+  if (error) throw error;
+  return data;
 }
 
 export async function updateProduct(id, updates) {
   if (!isConfigured) {
-    var products = loadLocal('products', DEMO_PRODUCTS);
-    var idx = products.findIndex(function(p) { return p.id === id; });
+    const products = loadLocal('products', DEMO_PRODUCTS);
+    const idx = products.findIndex(function(p) { return p.id === id; });
     if (idx === -1) throw new Error('Prodotto non trovato');
     products[idx] = { ...products[idx], ...updates };
     saveLocal('products', products);
     return products[idx];
   }
 
-  // Invia solo colonne REALI della tabella (evita errori schema cache)
-  var allowedColumns = [
-    'name', 'slug', 'description', 'category', 'price', 'unit',
-    'image_url', 'is_available', 'is_featured', 'allergens',
-    'dietary', 'ingredients',
-    'stock_weight_kg', 'low_stock_threshold_kg', 'display_order',
-  ];
-  var safeUpdates = {};
-  allowedColumns.forEach(function(col) {
-    if (col in updates) {
-      safeUpdates[col] = updates[col];
-    }
-  });
+  // Se il nome cambia, rigenera lo slug
+  if (updates.name) {
+    updates.slug = generateSlug(updates.name);
+  }
 
-  var result = await supabase.from('products').update(safeUpdates).eq('id', id).select().single();
-  if (result.error) throw result.error;
-  return result.data;
+  const safeUpdates = sanitizeProductPayload(updates);
+
+  const { data, error } = await supabase.from('products').update(safeUpdates).eq('id', Number(id)).select().single();
+  if (error) throw error;
+  return data;
 }
 
 export async function deleteProduct(id) {
   if (!isConfigured) {
-    var products = loadLocal('products', DEMO_PRODUCTS);
+    let products = loadLocal('products', DEMO_PRODUCTS);
     products = products.filter(function(p) { return p.id !== id; });
     saveLocal('products', products);
     return;
   }
-  var result = await supabase.from('products').delete().eq('id', id).select('id');
-  if (result.error) {
-    // Traduci errori FK constraint in messaggio amichevole
-    if (result.error.message && result.error.message.indexOf('foreign key') !== -1) {
+
+  const { data, error } = await supabase.from('products').delete().eq('id', Number(id)).select('id');
+  if (error) {
+    if (error.message && error.message.indexOf('foreign key') !== -1) {
       throw new Error('Prodotto presente in ordini esistenti. Rimuovi prima i riferimenti.');
     }
-    throw result.error;
+    throw error;
   }
-  if (!result.data || result.data.length === 0) {
+  if (!data || data.length === 0) {
     throw new Error('Nessuna riga eliminata: potresti non avere i permessi necessari.');
   }
 }
@@ -219,69 +226,70 @@ export async function deleteProduct(id) {
 
 export async function getOrders() {
   if (!isConfigured) return loadLocal('orders', DEMO_ORDERS);
-  var result = await supabase.from('orders').select('*').order('created_at', { ascending: false });
-  if (result.error) throw result.error;
-  return result.data;
+  const { data, error } = await supabase.from('orders').select('*').order('created_at', { ascending: false });
+  if (error) throw error;
+  return data;
 }
 
 export async function updateOrderStatus(id, status, paymentStatus) {
-  var updates = { updated_at: new Date().toISOString() };
+  const updates = { updated_at: new Date().toISOString() };
   if (status) updates.status = status;
   if (paymentStatus !== undefined) updates.payment_status = paymentStatus;
 
   if (!isConfigured) {
-    var orders = loadLocal('orders', DEMO_ORDERS);
-    var idx = orders.findIndex(function(o) { return o.id === id; });
+    const orders = loadLocal('orders', DEMO_ORDERS);
+    const idx = orders.findIndex(function(o) { return o.id === id; });
     if (idx === -1) throw new Error('Ordine non trovato');
     orders[idx] = { ...orders[idx], ...updates };
     saveLocal('orders', orders);
     return orders[idx];
   }
 
-  var result = await supabase.from('orders').update(updates).eq('id', id).select().single();
-  if (result.error) throw result.error;
-  return result.data;
+  const { data, error } = await supabase.from('orders').update(updates).eq('id', id).select().single();
+  if (error) throw error;
+  return data;
 }
 
 // ── SITE CONTENT ──
 
 export async function getSiteContent() {
   if (!isConfigured) return loadLocal('content', DEMO_CONTENT);
-  var result = await supabase.from('site_content').select('*').order('section', { ascending: true });
-  if (result.error) throw result.error;
-  return result.data;
+  const { data, error } = await supabase.from('site_content').select('*').order('section', { ascending: true });
+  if (error) throw error;
+  return data;
 }
 
 export async function updateSiteContent(id, value_it, value_en) {
   if (!isConfigured) {
-    var content = loadLocal('content', DEMO_CONTENT);
-    var idx = content.findIndex(function(c) { return c.id === id; });
+    const content = loadLocal('content', DEMO_CONTENT);
+    const idx = content.findIndex(function(c) { return c.id === id; });
     if (idx === -1) throw new Error('Contenuto non trovato');
     content[idx] = { ...content[idx], value_it: value_it, value_en: value_en, updated_at: new Date().toISOString() };
     saveLocal('content', content);
     return content[idx];
   }
-  var result = await supabase.from('site_content').update({ value_it: value_it, value_en: value_en, updated_at: new Date().toISOString() }).eq('id', id).select().single();
-  if (result.error) throw result.error;
-  return result.data;
+  const { data, error } = await supabase.from('site_content').update({
+    value_it: value_it, value_en: value_en, updated_at: new Date().toISOString()
+  }).eq('id', id).select().single();
+  if (error) throw error;
+  return data;
 }
 
 // ── SITE SETTINGS ──
 
 export async function getSiteSettings() {
   if (!isConfigured) return loadLocal('settings', DEMO_SETTINGS);
-  var result = await supabase.from('site_content').select('*').eq('section', '_setting').order('key', { ascending: true });
-  if (result.error) throw result.error;
-  return result.data;
+  const { data, error } = await supabase.from('site_content').select('*').eq('section', '_setting').order('key', { ascending: true });
+  if (error) throw error;
+  return data;
 }
 
 export async function updateSiteSetting(id, value) {
   if (!isConfigured) {
-    var settings = loadLocal('settings', DEMO_SETTINGS);
-    var idx = settings.findIndex(function(s) { return s.id === id; });
+    const settings = loadLocal('settings', DEMO_SETTINGS);
+    const idx = settings.findIndex(function(s) { return s.id === id; });
     if (idx === -1) {
-      // Auto-create if not found (e.g. new setting added after demo load)
-      var fallback = DEMO_SETTINGS.find(function(s) { return s.id === id; }) || { id: id, section: '_setting', key: 'unknown', value_it: '', value_en: '' };
+      const fallback = DEMO_SETTINGS.find(function(s) { return s.id === id; }) || { id: id, section: '_setting', key: 'unknown', value_it: '', value_en: '' };
       settings.push({ ...fallback, value_it: value, value_en: value, updated_at: new Date().toISOString() });
       saveLocal('settings', settings);
       return settings[settings.length - 1];
@@ -290,25 +298,29 @@ export async function updateSiteSetting(id, value) {
     saveLocal('settings', settings);
     return settings[idx];
   }
-  var result = await supabase.from('site_content').update({ value_it: value, value_en: value, updated_at: new Date().toISOString() }).eq('id', id).select().single();
-  if (result.error) throw result.error;
-  return result.data;
+  const { data, error } = await supabase.from('site_content').update({
+    value_it: value, value_en: value, updated_at: new Date().toISOString()
+  }).eq('id', id).select().single();
+  if (error) throw error;
+  return data;
 }
 
 // ── IMAGE UPLOAD ──
 
 export async function uploadProductImage(file, productId) {
   if (!isConfigured) {
-    // Return a fake URL (in reality the image won't be stored)
+    console.warn('[Admin] Modalità demo: le immagini non vengono salvate. Configura Supabase per upload reali.');
     return '/images/placeholder-product.svg';
   }
-  var ext = file.name.split('.').pop();
-  var fileName = 'product-' + productId + '-' + Date.now() + '.' + ext;
-  var filePath = 'products/' + fileName;
+  const ext = file.name.split('.').pop();
+  const fileName = 'product-' + productId + '-' + Date.now() + '.' + ext;
+  const filePath = 'products/' + fileName;
 
-  var uploadResult = await supabase.storage.from('product-images').upload(filePath, file, { cacheControl: '86400', upsert: true });
+  const uploadResult = await supabase.storage.from('product-images').upload(filePath, file, {
+    cacheControl: '86400', upsert: true,
+  });
   if (uploadResult.error) throw uploadResult.error;
 
-  var urlData = supabase.storage.from('product-images').getPublicUrl(filePath);
+  const urlData = supabase.storage.from('product-images').getPublicUrl(filePath);
   return urlData.publicUrl;
 }

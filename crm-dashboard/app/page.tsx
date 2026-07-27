@@ -5,71 +5,87 @@ async function getDashboardData() {
   const supabase = createAdminClient();
   const today = new Date().toISOString().split('T')[0];
   const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+  const weekAgo = new Date(Date.now() - 6 * 86400000).toISOString().split('T')[0];
 
-  // Today's orders
-  const { data: todayOrders } = await supabase
-    .from('orders')
-    .select('id, status, total, created_at')
-    .gte('created_at', `${today}T00:00:00`)
-    .order('created_at', { ascending: false });
+  // Lancia TUTTE le query in parallelo (Promise.all) invece che in sequenza
+  const [
+    todayOrdersRes,
+    revenueDataRes,
+    yRevRes,
+    pendingRes,
+    customersRes,
+    lowStockRes,
+    weeklyRes,
+    recentOrdersRes,
+    recentItemsRes,
+  ] = await Promise.all([
+    supabase.from('orders')
+      .select('id, status, total, created_at')
+      .gte('created_at', `${today}T00:00:00`)
+      .order('created_at', { ascending: false }),
+    supabase.from('orders')
+      .select('total')
+      .eq('status', 'completed')
+      .gte('created_at', `${today}T00:00:00`),
+    supabase.from('orders')
+      .select('total')
+      .eq('status', 'completed')
+      .gte('created_at', `${yesterday}T00:00:00`)
+      .lt('created_at', `${today}T00:00:00`),
+    supabase.from('orders')
+      .select('*', { count: 'exact', head: true })
+      .eq('status', 'pending'),
+    supabase.from('customers')
+      .select('*', { count: 'exact', head: true }),
+    supabase.from('products')
+      .select('name, stock_weight_kg, low_stock_threshold_kg')
+      .eq('is_available', true)
+      .limit(5),
+    supabase.from('analytics_daily')
+      .select('date, total_revenue, total_orders')
+      .gte('date', weekAgo)
+      .order('date', { ascending: true }),
+    supabase.from('orders')
+      .select('*, customers(name, phone)')
+      .order('created_at', { ascending: false })
+      .limit(8),
+    supabase.from('orders')
+      .select('order_items(quantity, products(name))')
+      .gte('created_at', weekAgo)
+      .neq('status', 'cancelled'),
+  ]);
 
-  // Today's revenue
-  const { data: revenueData } = await supabase
-    .from('orders')
-    .select('total')
-    .eq('status', 'completed')
-    .gte('created_at', `${today}T00:00:00`);
-  const todayRevenue = revenueData?.reduce((s, o) => s + Number(o.total), 0) || 0;
+  // Estrai i dati con fallback, logga eventuali errori in console
+  const todayOrders = todayOrdersRes.data || [];
+  const revenueData = revenueDataRes.data || [];
+  const yRev = yRevRes.data || [];
+  const pendingCount = pendingRes.count || 0;
+  const totalCustomers = customersRes.count || 0;
+  const lowStock = lowStockRes.data || [];
+  const weeklyData = weeklyRes.data || [];
+  const recentOrders = recentOrdersRes.data || [];
+  const recentOrderItems = recentItemsRes.data || [];
 
-  // Yesterday revenue
-  const { data: yRev } = await supabase
-    .from('orders')
-    .select('total')
-    .eq('status', 'completed')
-    .gte('created_at', `${yesterday}T00:00:00`)
-    .lt('created_at', `${today}T00:00:00`);
-  const yesterdayRevenue = yRev?.reduce((s, o) => s + Number(o.total), 0) || 0;
+  // Logga errori (non blocchiamo la dashboard, ma diamo visibilità)
+  const errors = [
+    todayOrdersRes.error, revenueDataRes.error, yRevRes.error,
+    pendingRes.error, customersRes.error, lowStockRes.error,
+    weeklyRes.error, recentOrdersRes.error, recentItemsRes.error,
+  ].filter(Boolean);
+  if (errors.length > 0) {
+    console.warn('[Dashboard] Errori nel caricamento dati:', errors);
+  }
 
-  // Pending
-  const { count: pendingCount } = await supabase
-    .from('orders')
-    .select('*', { count: 'exact', head: true })
-    .eq('status', 'pending');
+  // Filtra scorte basse: usa la soglia PER OGNI prodotto invece di 5kg fisso
+  const lowStockFiltered = lowStock.filter((p: any) =>
+    p.stock_weight_kg !== null && p.stock_weight_kg <= (p.low_stock_threshold_kg || 1.0)
+  ).slice(0, 5);
 
-  // Total customers
-  const { count: totalCustomers } = await supabase
-    .from('customers')
-    .select('*', { count: 'exact', head: true });
+  // Calcola ricavi
+  const todayRevenue = revenueData.reduce((s: number, o: any) => s + Number(o.total), 0);
+  const yesterdayRevenue = yRev.reduce((s: number, o: any) => s + Number(o.total), 0);
 
-  // Low stock
-  const { data: lowStock } = await supabase
-    .from('products')
-    .select('name, stock_weight_kg, low_stock_threshold_kg')
-    .eq('is_available', true)
-    .lte('stock_weight_kg', 5)
-    .limit(5);
-
-  // Weekly analytics
-  const { data: weeklyData } = await supabase
-    .from('analytics_daily')
-    .select('date, total_revenue, total_orders')
-    .gte('date', new Date(Date.now() - 6 * 86400000).toISOString().split('T')[0])
-    .order('date', { ascending: true });
-
-  // Recent orders
-  const { data: recentOrders } = await supabase
-    .from('orders')
-    .select('*, customers(name, phone)')
-    .order('created_at', { ascending: false })
-    .limit(8);
-
-  // Top products — join via orders (order_items has no created_at)
-  const { data: recentOrderItems } = await supabase
-    .from('orders')
-    .select('order_items(quantity, products(name))')
-    .gte('created_at', new Date(Date.now() - 6 * 86400000).toISOString().split('T')[0])
-    .neq('status', 'cancelled');
-
+  // Top products
   const productCount: Record<string, number> = {};
   recentOrderItems?.forEach((order: any) => {
     order.order_items?.forEach((item: any) => {
@@ -80,14 +96,14 @@ async function getDashboardData() {
   const topProducts = Object.entries(productCount).sort((a, b) => b[1] - a[1]).slice(0, 5);
 
   return {
-    todayOrders: todayOrders || [],
+    todayOrders,
     todayRevenue,
     yesterdayRevenue,
-    pendingCount: pendingCount || 0,
-    totalCustomers: totalCustomers || 0,
-    lowStock: lowStock || [],
-    weeklyData: weeklyData || [],
-    recentOrders: recentOrders || [],
+    pendingCount,
+    totalCustomers,
+    lowStock: lowStockFiltered,
+    weeklyData,
+    recentOrders,
     topProducts,
   };
 }

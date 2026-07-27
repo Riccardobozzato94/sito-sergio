@@ -16,6 +16,10 @@ export default function Products({ onAddToCart }) {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const searchRef = useRef(null);
 
+  // Usa un ref per activeCategory nella subscription real-time (evita stale closure)
+  const activeCategoryRef = useRef(activeCategory);
+  activeCategoryRef.current = activeCategory;
+
   // Fetch products from Supabase on mount and when category changes
   useEffect(() => {
     async function fetchProducts() {
@@ -45,8 +49,14 @@ export default function Products({ onAddToCart }) {
           table: 'products',
         },
         () => {
-          // Refetch when any change happens
-          fetchProducts();
+          // Refetch when any change happens — usa activeCategory dal ref
+          const currentCat = activeCategoryRef.current;
+          getProducts(currentCat === 'tutti' ? undefined : currentCat)
+            .then(data => setProducts(data || []))
+            .catch(err => {
+              console.error('Error refreshing products:', err);
+              setError(t.products_error);
+            });
         }
       )
       .subscribe();
@@ -75,14 +85,9 @@ export default function Products({ onAddToCart }) {
       )
     : products;
 
-  // Dietary filter
+  // Dietary filter (generico: matcha qualsiasi activeDiet con dietary array)
   const dietFiltered = activeDiet
-    ? filteredProducts.filter((p) => {
-        if (activeDiet === 'vegan') return p.dietary?.includes('vegan');
-        if (activeDiet === 'senza_lattosio') return p.dietary?.includes('senza_lattosio');
-        if (activeDiet === 'integrale') return p.dietary?.includes('integrale');
-        return true;
-      })
+    ? filteredProducts.filter((p) => p.dietary?.includes(activeDiet))
     : filteredProducts;
 
   // When category changes, reset search and diet filter

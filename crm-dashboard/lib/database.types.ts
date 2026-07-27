@@ -108,6 +108,8 @@ export interface Database {
           is_available: boolean;
           is_featured: boolean;
           allergens: string[];
+          dietary: string[];
+          ingredients: string;
           stock_weight_kg: number | null;
           low_stock_threshold_kg: number;
           display_order: number;

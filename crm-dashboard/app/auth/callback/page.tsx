@@ -11,7 +11,18 @@ export default function AuthCallbackPage() {
   useEffect(() => {
     const handleCallback = async () => {
       const supabase = createBrowserClient();
-      
+
+      // 1. Scambia il codice PKCE con una sessione (obbligatorio per OAuth)
+      const code = new URLSearchParams(window.location.search).get('code');
+      if (code) {
+        const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+        if (exchangeError) {
+          router.push('/login?error=Errore nello scambio del codice di autenticazione.');
+          return;
+        }
+      }
+
+      // 2. Recupera l'utente autenticato
       const { data, error } = await supabase.auth.getUser();
       
       if (error || !data.user) {
@@ -19,6 +30,7 @@ export default function AuthCallbackPage() {
         return;
       }
 
+      // 3. Verifica accesso CRM
       const { data: crmUser, error: crmError } = await supabase
         .from('crm_users')
         .select('id')

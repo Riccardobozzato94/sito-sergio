@@ -146,7 +146,22 @@ export async function createProduct(product) {
     return newProduct;
   }
   var slug = product.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 100);
-  var result = await supabase.from('products').insert([{ ...product, slug }]).select().single();
+
+  // Invia solo colonne REALI della tabella
+  var allowedColumns = [
+    'name', 'slug', 'description', 'category', 'price', 'unit',
+    'image_url', 'is_available', 'is_featured', 'allergens',
+    'dietary', 'ingredients',
+    'stock_weight_kg', 'low_stock_threshold_kg', 'display_order',
+  ];
+  var safeProduct = { slug: slug };
+  allowedColumns.forEach(function(col) {
+    if (col !== 'slug' && col in product) {
+      safeProduct[col] = product[col];
+    }
+  });
+
+  var result = await supabase.from('products').insert([safeProduct]).select().single();
   if (result.error) throw result.error;
   return result.data;
 }
@@ -160,7 +175,22 @@ export async function updateProduct(id, updates) {
     saveLocal('products', products);
     return products[idx];
   }
-  var result = await supabase.from('products').update(updates).eq('id', id).select().single();
+
+  // Invia solo colonne REALI della tabella (evita errori schema cache)
+  var allowedColumns = [
+    'name', 'slug', 'description', 'category', 'price', 'unit',
+    'image_url', 'is_available', 'is_featured', 'allergens',
+    'dietary', 'ingredients',
+    'stock_weight_kg', 'low_stock_threshold_kg', 'display_order',
+  ];
+  var safeUpdates = {};
+  allowedColumns.forEach(function(col) {
+    if (col in updates) {
+      safeUpdates[col] = updates[col];
+    }
+  });
+
+  var result = await supabase.from('products').update(safeUpdates).eq('id', id).select().single();
   if (result.error) throw result.error;
   return result.data;
 }
@@ -172,8 +202,17 @@ export async function deleteProduct(id) {
     saveLocal('products', products);
     return;
   }
-  var result = await supabase.from('products').delete().eq('id', id);
-  if (result.error) throw result.error;
+  var result = await supabase.from('products').delete().eq('id', id).select('id');
+  if (result.error) {
+    // Traduci errori FK constraint in messaggio amichevole
+    if (result.error.message && result.error.message.indexOf('foreign key') !== -1) {
+      throw new Error('Prodotto presente in ordini esistenti. Rimuovi prima i riferimenti.');
+    }
+    throw result.error;
+  }
+  if (!result.data || result.data.length === 0) {
+    throw new Error('Nessuna riga eliminata: potresti non avere i permessi necessari.');
+  }
 }
 
 // ── ORDERS ──

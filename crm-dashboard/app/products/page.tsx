@@ -78,10 +78,36 @@ export default function ProductsPage() {
   const handleDelete = async (product: Product) => {
     if (!confirm(`Eliminare "${product.name}"? Questa azione non può essere annullata.`)) return;
     const supabase = createBrowserClient();
-    const { error } = await supabase.from('products').delete().eq('id', product.id);
-    if (error) { toastError('Errore', error.message); return; }
+
+    // 1. Prova l'eliminazione
+    const { data: deletedData, error } = await supabase
+      .from('products')
+      .delete()
+      .eq('id', product.id)
+      .select('id');  // .select() serve per sapere se ha davvero cancellato
+
+    if (error) {
+      // Errore tipico: FK constraint con order_items
+      if (error.message?.includes('foreign key') || error.message?.includes('referenced')) {
+        toastError('Impossibile eliminare', `"${product.name}" è presente in ordini esistenti. Rimuovi prima i riferimenti.`);
+      } else {
+        toastError('Errore', error.message);
+      }
+      return;
+    }
+
+    // 2. Verifica che la riga sia stata effettivamente cancellata
+    if (!deletedData || deletedData.length === 0) {
+      toastError('Eliminazione fallita', `"${product.name}" non è stato eliminato. Potresti non avere i permessi necessari.`);
+      return;
+    }
+
+    // 3. Ok, rimosso con successo
     setProducts(prev => prev.filter(p => p.id !== product.id));
     success('Prodotto eliminato', product.name);
+
+    // 4. Ricarica da remoto per essere sicuri (recupera ordini, ecc.)
+    await fetchProducts();
   };
 
   const handleEdit = (product: Product) => {

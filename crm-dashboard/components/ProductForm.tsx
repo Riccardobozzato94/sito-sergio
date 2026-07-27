@@ -37,6 +37,8 @@ interface Product {
   is_available: boolean;
   is_featured: boolean;
   allergens: string[];
+  dietary?: string[];
+  ingredients?: string;
   stock_weight_kg: number | null;
   low_stock_threshold_kg: number;
   display_order: number;
@@ -61,6 +63,8 @@ const emptyProduct: Omit<Product, 'id'> = {
   is_available: true,
   is_featured: false,
   allergens: [],
+  dietary: [],
+  ingredients: '',
   stock_weight_kg: null,
   low_stock_threshold_kg: 1.0,
   display_order: 0,
@@ -112,11 +116,24 @@ export default function ProductForm({ isOpen, onClose, product, onSuccess }: Pro
     setSaving(true);
     const supabase = createBrowserClient();
     const slug = generateSlug(formData.name);
-    const dataToSave = {
-      ...formData,
+
+    // Costruiamo solo i campi che esistono NELLA TABELLA reale di Supabase
+    // (evitiamo di mandare colonne fantasma come 'dietary' o 'ingredients'
+    //  che potrebbero non esistere nello schema cache di PostgREST)
+    const dataToSave: Record<string, unknown> = {
+      name: formData.name,
       slug,
+      description: formData.description,
+      category: formData.category,
       price: Number(formData.price),
+      unit: formData.unit,
+      image_url: formData.image_url,
+      is_available: formData.is_available,
+      is_featured: formData.is_featured,
+      allergens: formData.allergens,
       stock_weight_kg: formData.stock_weight_kg !== null ? Number(formData.stock_weight_kg) : null,
+      low_stock_threshold_kg: Number(formData.low_stock_threshold_kg),
+      display_order: Number(formData.display_order),
     };
 
     try {
@@ -137,6 +154,11 @@ export default function ProductForm({ isOpen, onClose, product, onSuccess }: Pro
       }
 
       if (result.error) throw result.error;
+
+      // Verifica che il dato sia stato effettivamente scritto
+      if (result.data && result.data.length === 0) {
+        throw new Error('Nessuna riga aggiornata: potresti non avere i permessi per modificare questo prodotto.');
+      }
 
       success(
         formData.id ? 'Prodotto aggiornato' : 'Prodotto creato',

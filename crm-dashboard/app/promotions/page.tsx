@@ -44,10 +44,11 @@ export default function PromotionsPage() {
       ...form,
       valid_from: new Date(form.valid_from).toISOString(),
       valid_to: new Date(form.valid_to).toISOString(),
-    }]).select().single();
+    }]).select();
     setSaving(false);
     if (error) { toastError('Errore', error.message); return; }
-    setPromos(prev => [data, ...prev]);
+    if (!data || data.length === 0) { toastError('Errore', 'Nessuna promozione creata.'); return; }
+    setPromos(prev => [data[0] as Promo, ...prev]);
     setShowForm(false);
     setForm(empty());
     success('Promozione creata', form.title);

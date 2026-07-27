@@ -175,9 +175,10 @@ export async function createProduct(product) {
   const slug = generateSlug(product.name);
   const safeProduct = sanitizeProductPayload({ ...product, slug });
 
-  const { data, error } = await supabase.from('products').insert([safeProduct]).select('id,name,slug').single();
+  const { data, error } = await supabase.from('products').insert([safeProduct]).select('id,name,slug');
   if (error) throw error;
-  return data;
+  if (!data || data.length === 0) throw new Error('Inserimento fallito: nessuna riga creata.');
+  return data[0];
 }
 
 export async function updateProduct(id, updates) {
@@ -197,9 +198,10 @@ export async function updateProduct(id, updates) {
 
   const safeUpdates = sanitizeProductPayload(updates);
 
-  const { data, error } = await supabase.from('products').update(safeUpdates).eq('id', Number(id)).select('id,name,slug').single();
+  const { data, error } = await supabase.from('products').update(safeUpdates).eq('id', Number(id)).select('id,name,slug');
   if (error) throw error;
-  return data;
+  if (!data || data.length === 0) throw new Error('Nessun prodotto aggiornato: ID non trovato o permessi insufficienti.');
+  return data[0];
 }
 
 export async function deleteProduct(id) {
@@ -245,9 +247,10 @@ export async function updateOrderStatus(id, status, paymentStatus) {
     return orders[idx];
   }
 
-  const { data, error } = await supabase.from('orders').update(updates).eq('id', id).select().single();
+  const { data, error } = await supabase.from('orders').update(updates).eq('id', id).select('id');
   if (error) throw error;
-  return data;
+  if (!data || data.length === 0) throw new Error('Nessun ordine aggiornato: ID non trovato.');
+  return data[0];
 }
 
 // ── SITE CONTENT ──
@@ -270,9 +273,10 @@ export async function updateSiteContent(id, value_it, value_en) {
   }
   const { data, error } = await supabase.from('site_content').update({
     value_it: value_it, value_en: value_en, updated_at: new Date().toISOString()
-  }).eq('id', id).select().single();
+  }).eq('id', id).select('id');
   if (error) throw error;
-  return data;
+  if (!data || data.length === 0) throw new Error('Nessun contenuto aggiornato: ID non trovato.');
+  return data[0];
 }
 
 // ── SITE SETTINGS ──
@@ -300,9 +304,10 @@ export async function updateSiteSetting(id, value) {
   }
   const { data, error } = await supabase.from('site_content').update({
     value_it: value, value_en: value, updated_at: new Date().toISOString()
-  }).eq('id', id).select().single();
+  }).eq('id', id).select('id');
   if (error) throw error;
-  return data;
+  if (!data || data.length === 0) throw new Error('Nessuna impostazione aggiornata: ID non trovato.');
+  return data[0];
 }
 
 // ── IMAGE UPLOAD ──

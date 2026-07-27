@@ -175,7 +175,7 @@ export async function createProduct(product) {
   const slug = generateSlug(product.name);
   const safeProduct = sanitizeProductPayload({ ...product, slug });
 
-  const { data, error } = await supabase.from('products').insert([safeProduct]).select().single();
+  const { data, error } = await supabase.from('products').insert([safeProduct]).select('id,name,slug').single();
   if (error) throw error;
   return data;
 }
@@ -197,7 +197,7 @@ export async function updateProduct(id, updates) {
 
   const safeUpdates = sanitizeProductPayload(updates);
 
-  const { data, error } = await supabase.from('products').update(safeUpdates).eq('id', Number(id)).select().single();
+  const { data, error } = await supabase.from('products').update(safeUpdates).eq('id', Number(id)).select('id,name,slug').single();
   if (error) throw error;
   return data;
 }

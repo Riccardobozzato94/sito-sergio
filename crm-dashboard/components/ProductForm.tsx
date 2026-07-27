@@ -139,18 +139,19 @@ export default function ProductForm({ isOpen, onClose, product, onSuccess }: Pro
     try {
       let result;
       if (formData.id) {
-        // Update
+        // Update — .select('id') invece di .select() per evitare
+        // l'errore "schema cache" su colonne non allineate (es. dietary)
         result = await supabase
           .from('products')
           .update(dataToSave)
           .eq('id', formData.id)
-          .select();
+          .select('id');
       } else {
         // Insert
         result = await supabase
           .from('products')
           .insert([dataToSave])
-          .select();
+          .select('id');
       }
 
       if (result.error) throw result.error;

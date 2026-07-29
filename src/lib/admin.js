@@ -45,7 +45,6 @@ async function rest(method, path, body) {
     body: body ? JSON.stringify(body) : void 0,
   });
   const txt = await res.text();
-  console.log('[🔍] rest status=', res.status, '| body (first 150):', txt.slice(0,150));
   if (!res.ok) {
     let msg = txt;
     try { const j = JSON.parse(txt); msg = j.message || j.msg || txt; } catch {}
@@ -114,27 +113,6 @@ function generateSlug(name) {
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '')
     .slice(0, 100);
-}
-
-// ── Allowed columns per le operazioni CRUD sui prodotti ──
-const PRODUCT_ALLOWED_COLUMNS = [
-  'name', 'slug', 'description', 'category', 'price', 'unit',
-  'image_url', 'is_available', 'is_featured', 'allergens',
-  'dietary', 'ingredients',
-  'stock_weight_kg', 'low_stock_threshold_kg', 'display_order',
-];
-
-/** Filtra un oggetto tenendo solo le colonne consentite per la tabella products.
- *  Usa Object.keys() invece di 'in' operator per evitare edge case
- *  con oggetti costruiti tramite spread o Object.assign. */
-function sanitizeProductPayload(payload) {
-  const safe = {};
-  Object.keys(payload).forEach(function(key) {
-    if (PRODUCT_ALLOWED_COLUMNS.includes(key) && payload[key] !== undefined) {
-      safe[key] = payload[key];
-    }
-  });
-  return safe;
 }
 
 // ── Storage helpers ──
@@ -260,30 +238,17 @@ export async function updateProduct(id, updates) {
   if (updates.name) updates.slug = generateSlug(updates.name);
   const keys = Object.keys(updates);
 
-  console.log('[✏️] updateProduct id=', id, 'keys=', keys.join(','), 'updates=', JSON.stringify(updates).slice(0,300));
-
   // Se non ci sono campi da aggiornare, esci senza errore
-  if (keys.length === 0) {
-    console.log('[✏️] no keys to update, skipping');
-    return { id };
-  }
+  if (keys.length === 0) return { id };
 
-  // Manda il payload direttamente (PostgREST ignora colonne inesistenti)
+  // Manda il payload direttamente
   const data = await rest('PATCH', 'products?id=eq.' + Number(id) + '&select=id,name,slug', updates);
-  console.log('[✏️] data=', data, 'length=', data ? data.length : 'null');
 
+  // Fallback supabase-js
   if (!data || data.length === 0) {
-    // Fallback supabase-js
-    console.log('[✏️] rest empty, trying supabase-js');
-    try {
-      if (isConfigured) {
-        const result = await supabase.from('products').update(updates).eq('id', Number(id)).select('id,name,slug');
-        console.log('[✏️] sb result:', result.data ? JSON.stringify(result.data) : result.error?.message);
-        if (result.error) throw result.error;
-        if (result.data && result.data.length > 0) return result.data[0];
-      }
-    } catch (e) {
-      console.log('[✏️] sb error:', e.message);
+    if (isConfigured) {
+      const result = await supabase.from('products').update(updates).eq('id', Number(id)).select('id,name,slug');
+      if (!result.error && result.data && result.data.length > 0) return result.data[0];
     }
   }
   if (!data || data.length === 0) throw new Error('Nessun prodotto aggiornato: ID non trovato o permessi insufficienti.');
@@ -412,7 +377,8 @@ export async function uploadProductImage(file, productId) {
   });
   if (uploadResult.error) throw uploadResult.error;
 
-  const urlData = supabase.storage.from('product-images').getPublicUrl(filePath);
+  const { data: urlData } = supabase.storage.from('product-images').getPublicUrl(filePath);
+  if (!urlData || !urlData.publicUrl) throw new Error('URL immagine non generato');
   return urlData.publicUrl;
 }
 

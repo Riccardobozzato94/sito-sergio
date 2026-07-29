@@ -124,33 +124,18 @@ export default function AdminProducts() {
   }
 
   async function handleSave() {
-    // Legge i dati dal form state corrente — se è vuoto (stale closure),
-    // usa il prodotto dalla lista products
-    let data = { ...form };
-    if (!data.name || !data.name.trim()) {
-      // Fallback: cerca il prodotto nella lista per ID
-      const prod = products.find(p => p.id === editing);
-      if (prod) {
-        data = { ...prod };
-        console.log('[💾] handleSave recovered product from list:', prod.name);
-      } else {
-        setError('Il nome è obbligatorio');
-        return;
-      }
-    }
-    const priceNum = parseFloat(data.price);
+    const priceNum = parseFloat(form.price);
     if (isNaN(priceNum) || priceNum <= 0) { setError('Il prezzo deve essere maggiore di 0'); return; }
     setError('');
     setSaving(true);
     try {
       const payload = {
-        ...data,
-        price: parseFloat(data.price),
-        display_order: parseInt(data.display_order) || 0,
-        dietary: data.dietary || [],
-        ingredients: data.ingredients || '',
+        ...form,
+        price: parseFloat(form.price),
+        display_order: parseInt(form.display_order) || 0,
+        dietary: form.dietary || [],
+        ingredients: form.ingredients || '',
       };
-      console.log('[💾] handleSave editing=', editing, 'payload keys=', Object.keys(payload).join(','), 'payload name=', payload.name);
       if (editing === 'new') await createProduct(payload);
       else await updateProduct(editing, payload);
       setSuccess(editing === 'new' ? 'Prodotto creato!' : 'Prodotto aggiornato!');

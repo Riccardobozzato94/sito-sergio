@@ -172,20 +172,20 @@ export async function fetchSiteSettings() {
 
 // ── Merge site_content with i18n defaults ──
 // Returns a translations-like object with dynamic overrides
+// Dynamic content from Supabase is the primary source;
+// static defaults are fallbacks only when the DB value is null/undefined.
 export function mergeTranslations(lang, contentRows) {
-  // Start with static defaults
   const base = translations[lang] || translations.it;
   const merged = { ...base };
 
   if (!contentRows || contentRows.length === 0) return merged;
 
-  // Override with dynamic content
   for (const row of contentRows) {
     const mapKey = `${row.section}.${row.key}`;
     const tKey = SECTION_KEY_MAP[mapKey];
-    if (tKey && merged.hasOwnProperty(tKey)) {
+    if (tKey) {
       const value = lang === 'en' ? row.value_en : row.value_it;
-      if (value && value.trim()) {
+      if (value != null) {
         merged[tKey] = value;
       }
     }

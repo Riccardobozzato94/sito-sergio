@@ -365,6 +365,9 @@ export async function updateSiteSetting(id, value) {
 
 // ── IMAGE UPLOAD ──
 
+/**
+ * Carica un singolo file immagine su Supabase Storage e ne restituisce l'URL pubblico.
+ */
 export async function uploadProductImage(file, productId) {
   if (!isConfigured) {
     console.warn('[Admin] Modalità demo: le immagini non vengono salvate. Configura Supabase per upload reali.');
@@ -381,4 +384,27 @@ export async function uploadProductImage(file, productId) {
 
   const urlData = supabase.storage.from('product-images').getPublicUrl(filePath);
   return urlData.publicUrl;
+}
+
+/**
+ * Carica più file immagine contemporaneamente.
+ * Restituisce un array di URL pubblici.
+ */
+export async function uploadProductImages(files, productId) {
+  const urls = [];
+  for (const file of files) {
+    const url = await uploadProductImage(file, productId);
+    urls.push(url);
+  }
+  return urls;
+}
+
+/**
+ * Serializza un array di URL immagine in formato da salvare su `image_url`.
+ * Produce un JSON string array, oppure una stringa singola se c'è 1 solo URL.
+ */
+export function serializeImageUrls(urls) {
+  if (!urls || urls.length === 0) return '';
+  if (urls.length === 1) return urls[0];
+  return JSON.stringify(urls);
 }

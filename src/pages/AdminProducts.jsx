@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { getProducts, createProduct, updateProduct, deleteProduct, uploadProductImage } from '../lib/admin';
-import { Plus, Pencil, Trash2, X, Check, ImageUp, AlertCircle, Search, Filter, Eye } from 'lucide-react';
+import { getProducts, createProduct, updateProduct, deleteProduct, uploadProductImages, serializeImageUrls } from '../lib/admin';
+import { Plus, Pencil, Trash2, X, Check, ImageUp, AlertCircle, Search, Filter, Eye, Trash } from 'lucide-react';
 import { imageUrl } from '../lib/images';
 
 const CATEGORIES = [
@@ -160,28 +160,61 @@ export default function AdminProducts() {
     }
   }
 
+  /** Restituisce l'array di URL immagine correnti per il form */
+  function currentImageUrls() {
+    // L'immagine appena caricata (singola) è in form.image_url
+    // Se è un JSON array, lo parse; altrimenti è stringa singola
+    if (!form.image_url) return [];
+    const v = form.image_url;
+    if (Array.isArray(v)) return v.filter(Boolean);
+    if (typeof v === 'string') {
+      const t = v.trim();
+      if (t.startsWith('[')) {
+        try { const p = JSON.parse(t); if (Array.isArray(p)) return p.filter(Boolean); } catch {}
+      }
+      return [t];
+    }
+    return [];
+  }
+
   async function handleImageUpload(e) {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
     if (!editing || editing === 'new') {
-      setError('Salva prima il prodotto, poi aggiungi l\'immagine');
+      setError('Salva prima il prodotto, poi aggiungi le immagini');
       return;
     }
     setUploading(true);
-    let uploadedUrl = null;
+    const uploadedUrls = [];
     try {
-      uploadedUrl = await uploadProductImage(file, editing);
-      await updateProduct(editing, { image_url: uploadedUrl });
-      setForm((f) => ({ ...f, image_url: uploadedUrl }));
+      // Carica tutti i file selezionati
+      for (const file of files) {
+        const url = await uploadProductImages([file], editing);
+        uploadedUrls.push(...url);
+      }
+      // Unisci alle immagini esistenti
+      const existing = currentImageUrls();
+      const allUrls = [...existing, ...uploadedUrls];
+      const serialized = serializeImageUrls(allUrls);
+      await updateProduct(editing, { image_url: serialized });
+      setForm((f) => ({ ...f, image_url: serialized }));
       await loadProducts();
     } catch (err) {
-      // Se l'upload è riuscito ma l'update è fallito, il file è orfano nello storage
-      // (non possiamo cancellarlo facilmente senza admin SDK, ma almeno logghiamo)
-      if (uploadedUrl) {
-        console.warn('[Admin] Immagine caricata ma non associata al prodotto:', uploadedUrl);
-      }
       setError(err.message || 'Errore upload immagine');
     } finally { setUploading(false); }
+  }
+
+  async function handleRemoveImage(index) {
+    const existing = currentImageUrls();
+    const filtered = existing.filter((_, i) => i !== index);
+    const serialized = serializeImageUrls(filtered);
+    try {
+      await updateProduct(editing, { image_url: serialized });
+      setForm((f) => ({ ...f, image_url: serialized }));
+      await loadProducts();
+    } catch (err) {
+      setError(err.message || 'Errore rimozione immagine');
+    }
   }
 
   function toggleAllergen(allergen) {
@@ -391,14 +424,32 @@ export default function AdminProducts() {
               </div>
             </div>
             <div className="sm:col-span-2">
-              <label className="text-text-dim text-xs uppercase tracking-wider block mb-1.5">Immagine</label>
-              <div className="flex items-center gap-4">
-                {form.image_url && (
-                  <div className="w-16 h-16 rounded-xl overflow-hidden bg-bg border border-border shrink-0">
-                    <img src={imageUrl(form.image_url)} alt="" className="w-full h-full object-cover" />
+              <label className="text-text-dim text-xs uppercase tracking-wider block mb-1.5">
+                Immagini ({currentImageUrls().length})
+              </label>
+              <div className="flex flex-wrap gap-3 mb-3">
+                {currentImageUrls().map((url, i) => (
+                  <div key={i} className="relative group w-20 h-20 rounded-xl overflow-hidden bg-bg border border-border shrink-0">
+                    <img src={imageUrl(url)} alt="" className="w-full h-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveImage(i)}
+                      className="absolute top-1 right-1 w-6 h-6 bg-red-500/80 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500"
+                    >
+                      <X size={12} className="text-white" />
+                    </button>
                   </div>
-                )}
-                <input ref={fileInputRef} type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
+                ))}
+              </div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={handleImageUpload}
+                className="hidden"
+              />
+              <div className="flex gap-2">
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
@@ -406,8 +457,11 @@ export default function AdminProducts() {
                   className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-border text-text-dim hover:text-white hover:border-white/20 transition-all text-sm disabled:opacity-50"
                 >
                   <ImageUp size={16} />
-                  {uploading ? 'Caricamento...' : form.image_url ? 'Cambia immagine' : 'Carica immagine'}
+                  {uploading ? 'Caricamento...' : 'Aggiungi foto'}
                 </button>
+                {currentImageUrls().length === 0 && (
+                  <span className="text-text-dim text-xs self-center">Nessuna immagine. Carica una o più foto del prodotto.</span>
+                )}
               </div>
             </div>
           </div>

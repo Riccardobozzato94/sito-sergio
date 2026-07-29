@@ -273,6 +273,7 @@ export default function ProductForm({ isOpen, onClose, product, onSuccess }: Pro
                       // Cancella il file dallo storage Supabase
                       const supabase = createBrowserClient();
                       const url = formData.image_url;
+                      if (!url) return; // type guard: url could be null
                       // Estrai il percorso del file dall'URL pubblico
                       // URL formato: https://{project}.supabase.co/storage/v1/object/public/product-images/products/{fileName}
                       const matches = url.match(/\/product-images\/(.+)$/);

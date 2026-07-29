@@ -104,26 +104,33 @@ function saveLocal(key, data) {
 const DEMO_USER = { email: 'admin@panificio.it', password: 'admin123' };
 
 export async function signIn(email, password) {
-  // Always allow demo credentials for testing (works in all modes)
+  // Try Supabase auth first if configured
+  if (isConfigured) {
+    try {
+      const result = await supabase.auth.signInWithPassword({ email, password });
+      if (result.error) throw result.error;
+      if (result.data?.session) {
+        saveLocal('session', {
+          user: result.data.session.user,
+          access_token: result.data.session.access_token,
+          refresh_token: result.data.session.refresh_token,
+          expires_at: Date.parse(result.data.session.expires_at) || (Date.now() + 3600000),
+        });
+      }
+      return result.data;
+    } catch (e) {
+      // Se Supabase Auth fallisce, prova il fallback demo (solo per le credenziali demo)
+      if (!(email === DEMO_USER.email && password === DEMO_USER.password)) {
+        throw e;
+      }
+    }
+  }
+
+  // Fallback demo credentials (funziona anche offline / senza Supabase)
   if (email === DEMO_USER.email && password === DEMO_USER.password) {
     const session = { user: { email: email }, access_token: 'demo-token', expires_at: Date.now() + 86400000 };
     saveLocal('session', session);
     return { session: session };
-  }
-  // Try Supabase auth if configured
-  if (isConfigured) {
-    const result = await supabase.auth.signInWithPassword({ email, password });
-    if (result.error) throw result.error;
-    // Save session to localStorage for persistence
-    if (result.data?.session) {
-      saveLocal('session', {
-        user: result.data.session.user,
-        access_token: result.data.session.access_token,
-        refresh_token: result.data.session.refresh_token,
-        expires_at: Date.parse(result.data.session.expires_at) || (Date.now() + 3600000),
-      });
-    }
-    return result.data;
   }
   throw new Error('Credenziali non valide. Prova: admin@panificio.it / admin123');
 }

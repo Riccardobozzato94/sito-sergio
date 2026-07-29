@@ -258,19 +258,26 @@ export async function updateProduct(id, updates) {
   }
 
   if (updates.name) updates.slug = generateSlug(updates.name);
-  const safe = sanitizeProductPayload(updates);
-  const body = Object.keys(safe).length > 0 ? safe : updates;
+  const keys = Object.keys(updates);
 
-  console.log('[✏️] updateProduct called id=', id, '| updates=', JSON.stringify(updates).slice(0,200), '| safe=', JSON.stringify(safe).slice(0,200), '| body=', JSON.stringify(body).slice(0,200));
-  const data = await rest('PATCH', 'products?id=eq.' + Number(id) + '&select=id,name,slug', body);
+  console.log('[✏️] updateProduct id=', id, 'keys=', keys.join(','), 'updates=', JSON.stringify(updates).slice(0,300));
+
+  // Se non ci sono campi da aggiornare, esci senza errore
+  if (keys.length === 0) {
+    console.log('[✏️] no keys to update, skipping');
+    return { id };
+  }
+
+  // Manda il payload direttamente (PostgREST ignora colonne inesistenti)
+  const data = await rest('PATCH', 'products?id=eq.' + Number(id) + '&select=id,name,slug', updates);
   console.log('[✏️] data=', data, 'length=', data ? data.length : 'null');
 
-  // Fallback: prova supabase-js
   if (!data || data.length === 0) {
+    // Fallback supabase-js
     console.log('[✏️] rest empty, trying supabase-js');
     try {
       if (isConfigured) {
-        const result = await supabase.from('products').update(body).eq('id', Number(id)).select('id,name,slug');
+        const result = await supabase.from('products').update(updates).eq('id', Number(id)).select('id,name,slug');
         console.log('[✏️] sb result:', result.data ? JSON.stringify(result.data) : result.error?.message);
         if (result.error) throw result.error;
         if (result.data && result.data.length > 0) return result.data[0];

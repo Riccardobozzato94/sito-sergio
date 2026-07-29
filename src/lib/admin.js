@@ -261,9 +261,24 @@ export async function updateProduct(id, updates) {
   const safe = sanitizeProductPayload(updates);
   const body = Object.keys(safe).length > 0 ? safe : updates;
 
-  console.log('[✏️] updateProduct id=', id, '| updates keys=', Object.keys(updates).join(','), '| safe keys=', Object.keys(safe).join(','), '| using body keys=', Object.keys(body).join(','));
+  console.log('[✏️] body=', JSON.stringify(body));
   const data = await rest('PATCH', 'products?id=eq.' + Number(id) + '&select=id,name,slug', body);
-  console.log('[✏️] PATCH result:', JSON.stringify(data).slice(0,100));
+  console.log('[✏️] data=', data, 'length=', data ? data.length : 'null');
+
+  // Fallback: prova supabase-js
+  if (!data || data.length === 0) {
+    console.log('[✏️] rest empty, trying supabase-js');
+    try {
+      if (isConfigured) {
+        const result = await supabase.from('products').update(body).eq('id', Number(id)).select('id,name,slug');
+        console.log('[✏️] sb result:', result.data ? JSON.stringify(result.data) : result.error?.message);
+        if (result.error) throw result.error;
+        if (result.data && result.data.length > 0) return result.data[0];
+      }
+    } catch (e) {
+      console.log('[✏️] sb error:', e.message);
+    }
+  }
   if (!data || data.length === 0) throw new Error('Nessun prodotto aggiornato: ID non trovato o permessi insufficienti.');
   return data[0];
 }

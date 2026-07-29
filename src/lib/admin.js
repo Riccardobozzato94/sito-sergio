@@ -45,6 +45,7 @@ async function rest(method, path, body) {
     body: body ? JSON.stringify(body) : void 0,
   });
   const txt = await res.text();
+  console.log('[🔍] rest status=', res.status, '| body (first 150):', txt.slice(0,150));
   if (!res.ok) {
     let msg = txt;
     try { const j = JSON.parse(txt); msg = j.message || j.msg || txt; } catch {}
@@ -258,10 +259,11 @@ export async function updateProduct(id, updates) {
 
   if (updates.name) updates.slug = generateSlug(updates.name);
   const safe = sanitizeProductPayload(updates);
-  // Fallback: se safe è vuoto ma updates ha campi validi, usa updates direttamente
   const body = Object.keys(safe).length > 0 ? safe : updates;
 
+  console.log('[✏️] updateProduct id=', id, '| updates keys=', Object.keys(updates).join(','), '| safe keys=', Object.keys(safe).join(','), '| using body keys=', Object.keys(body).join(','));
   const data = await rest('PATCH', 'products?id=eq.' + Number(id) + '&select=id,name,slug', body);
+  console.log('[✏️] PATCH result:', JSON.stringify(data).slice(0,100));
   if (!data || data.length === 0) throw new Error('Nessun prodotto aggiornato: ID non trovato o permessi insufficienti.');
   return data[0];
 }

@@ -6,44 +6,50 @@
 import { supabase, isConfigured } from './supabase/client';
 
 // ═══════════════════════════════════════════════════════════
-// Direct Supabase REST helper — bypasses supabase-js client
-// session management. Uses JWT from app's localStorage.
+// Direct Supabase REST API — bypasses supabase-js client
+// session management. Uses JWT from app's localStorage for Auth,
+// but also works with just the anon key for permitted operations.
 // ═══════════════════════════════════════════════════════════
 
-function getStoredToken() {
-  const session = loadLocal('session', null);
-  if (session && session.access_token && session.access_token !== 'demo-token') {
-    return session.access_token;
-  }
-  return null;
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || '';
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+
+/** Recupera il JWT salvato in admin-session */
+function storedToken() {
+  const s = loadLocal('session', null);
+  return (s && s.access_token && s.access_token !== 'demo-token') ? s.access_token : null;
 }
 
-function getSupabaseHeaders() {
-  const token = getStoredToken();
-  const headers = {
-    'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY || '',
+/** Prepara headers standard per le REST API di Supabase */
+function apiHeaders() {
+  const h = {
+    'apikey': SUPABASE_ANON_KEY,
     'Content-Type': 'application/json',
     'Prefer': 'return=representation',
   };
-  if (token) {
-    headers['Authorization'] = 'Bearer ' + token;
-  }
-  return headers;
+  const t = storedToken();
+  if (t) h['Authorization'] = 'Bearer ' + t;
+  return h;
 }
 
-async function supabaseFetch(method, path, body) {
-  const baseUrl = import.meta.env.VITE_SUPABASE_URL || '';
-  if (!baseUrl) throw new Error('Supabase non configurato');
-  const url = baseUrl + '/rest/v1/' + path;
-  const resp = await fetch(url, {
+/** Fa una chiamata HTTP diretta a Supabase REST API.
+ *  Restituisce l'array JSON parsato ([] se risposta vuota).
+ *  Lancia errore per HTTP non-ok. */
+async function rest(method, path, body) {
+  if (!SUPABASE_URL) throw new Error('Supabase non configurato');
+  const res = await fetch(SUPABASE_URL + '/rest/v1/' + path, {
     method,
-    headers: getSupabaseHeaders(),
-    body: body ? JSON.stringify(body) : undefined,
+    headers: apiHeaders(),
+    body: body ? JSON.stringify(body) : void 0,
   });
-  const text = await resp.text();
-  if (!resp.ok) throw new Error(text);
-  if (!text || text === '[]') return [];
-  try { return JSON.parse(text); } catch { return []; }
+  const txt = await res.text();
+  if (!res.ok) {
+    let msg = txt;
+    try { const j = JSON.parse(txt); msg = j.message || j.msg || txt; } catch {}
+    throw new Error(msg);
+  }
+  if (!txt || txt === '[]') return [];
+  try { return JSON.parse(txt); } catch { return []; }
 }
 
 // ── Demo data for offline mode ──
@@ -213,8 +219,8 @@ export async function getSession() {
 
 export async function getProducts() {
   if (!isConfigured) return loadLocal('products', DEMO_PRODUCTS);
-  const { data, error } = await supabase.from('products').select('*').order('display_order', { ascending: true });
-  if (error) throw error;
+  const data = await rest('GET', 'products?select=*&order=display_order.asc');
+  if (!data) return [];
   return data;
 }
 
@@ -230,20 +236,10 @@ export async function createProduct(product) {
   }
 
   const slug = generateSlug(product.name);
-  const safeProduct = sanitizeProductPayload({ ...product, slug });
-
-  // Try supabase-js client first, fallback to direct fetch with stored JWT
-  try {
-    const { data, error } = await supabase.from('products').insert([safeProduct]).select('id,name,slug');
-    if (error) throw error;
-    if (!data || data.length === 0) throw new Error('Nessun dato');
-    return data[0];
-  } catch (e) {
-    // Fallback: direct HTTP call using JWT from localStorage
-    const data = await supabaseFetch('POST', 'products?select=id,name,slug', safeProduct);
-    if (!data || data.length === 0) throw new Error('Inserimento fallito: nessuna riga creata.');
-    return data[0];
-  }
+  const safe = sanitizeProductPayload({ ...product, slug });
+  const data = await rest('POST', 'products?select=id,name,slug', safe);
+  if (!data || data.length === 0) throw new Error('Inserimento fallito: nessuna riga creata.');
+  return data[0];
 }
 
 export async function updateProduct(id, updates) {
@@ -256,26 +252,12 @@ export async function updateProduct(id, updates) {
     return products[idx];
   }
 
-  // Se il nome cambia, rigenera lo slug
-  if (updates.name) {
-    updates.slug = generateSlug(updates.name);
-  }
+  if (updates.name) updates.slug = generateSlug(updates.name);
+  const safe = sanitizeProductPayload(updates);
 
-  const safeUpdates = sanitizeProductPayload(updates);
-
-  // Try supabase-js client first, fallback to direct fetch with stored JWT
-  try {
-    const { data, error } = await supabase.from('products').update(safeUpdates).eq('id', Number(id)).select('id,name,slug');
-    if (error) throw error;
-    if (!data || data.length === 0) throw new Error('Nessun dato');
-    return data[0];
-  } catch (e) {
-    // Fallback: direct HTTP call using JWT from localStorage
-    const path = 'products?id=eq.' + Number(id) + '&select=id,name,slug';
-    const data = await supabaseFetch('PATCH', path, safeUpdates);
-    if (!data || data.length === 0) throw new Error('Nessun prodotto aggiornato: ID non trovato o permessi insufficienti.');
-    return data[0];
-  }
+  const data = await rest('PATCH', 'products?id=eq.' + Number(id) + '&select=id,name,slug', safe);
+  if (!data || data.length === 0) throw new Error('Nessun prodotto aggiornato: ID non trovato o permessi insufficienti.');
+  return data[0];
 }
 
 export async function deleteProduct(id) {
@@ -286,26 +268,15 @@ export async function deleteProduct(id) {
     return;
   }
 
-  // Try supabase-js client first, fallback to direct fetch with stored JWT
   try {
-    const { data, error } = await supabase.from('products').delete().eq('id', Number(id)).select('id');
-    if (error) {
-      if (error.message && error.message.indexOf('foreign key') !== -1) {
-        throw new Error('Prodotto presente in ordini esistenti. Rimuovi prima i riferimenti.');
-      }
-      throw error;
-    }
-    if (!data || data.length === 0) {
-      throw new Error('Nessuna riga eliminata: potresti non avere i permessi necessari.');
-    }
+    const data = await rest('DELETE', 'products?id=eq.' + Number(id) + '&select=id');
+    if (!data || data.length === 0) throw new Error('Nessuna riga eliminata.');
   } catch (e) {
-    // Fallback: direct HTTP call using JWT from localStorage
-    if (e.message && e.message.indexOf('foreign key') !== -1) throw e;
-    const path = 'products?id=eq.' + Number(id) + '&select=id';
-    const data = await supabaseFetch('DELETE', path);
-    if (!data || data.length === 0) {
+    if (e.message && e.message.indexOf('foreign key') !== -1)
+      throw new Error('Prodotto presente in ordini esistenti. Rimuovi prima i riferimenti.');
+    if (e.message && e.message.indexOf('Nessuna riga') !== -1)
       throw new Error('Nessuna riga eliminata: potresti non avere i permessi necessari.');
-    }
+    throw e;
   }
 }
 
@@ -313,8 +284,8 @@ export async function deleteProduct(id) {
 
 export async function getOrders() {
   if (!isConfigured) return loadLocal('orders', DEMO_ORDERS);
-  const { data, error } = await supabase.from('orders').select('*').order('created_at', { ascending: false });
-  if (error) throw error;
+  const data = await rest('GET', 'orders?select=*&order=created_at.desc');
+  if (!data) return [];
   return data;
 }
 
@@ -332,8 +303,7 @@ export async function updateOrderStatus(id, status, paymentStatus) {
     return orders[idx];
   }
 
-  const { data, error } = await supabase.from('orders').update(updates).eq('id', id).select('id');
-  if (error) throw error;
+  const data = await rest('PATCH', 'orders?id=eq.' + id + '&select=id', updates);
   if (!data || data.length === 0) throw new Error('Nessun ordine aggiornato: ID non trovato.');
   return data[0];
 }
@@ -342,8 +312,8 @@ export async function updateOrderStatus(id, status, paymentStatus) {
 
 export async function getSiteContent() {
   if (!isConfigured) return loadLocal('content', DEMO_CONTENT);
-  const { data, error } = await supabase.from('site_content').select('*').order('section', { ascending: true });
-  if (error) throw error;
+  const data = await rest('GET', 'site_content?select=*&order=section.asc');
+  if (!data) return [];
   return data;
 }
 
@@ -356,10 +326,9 @@ export async function updateSiteContent(id, value_it, value_en) {
     saveLocal('content', content);
     return content[idx];
   }
-  const { data, error } = await supabase.from('site_content').update({
+  const data = await rest('PATCH', 'site_content?id=eq.' + id + '&select=id', {
     value_it: value_it, value_en: value_en, updated_at: new Date().toISOString()
-  }).eq('id', id).select('id');
-  if (error) throw error;
+  });
   if (!data || data.length === 0) throw new Error('Nessun contenuto aggiornato: ID non trovato.');
   return data[0];
 }
@@ -368,8 +337,8 @@ export async function updateSiteContent(id, value_it, value_en) {
 
 export async function getSiteSettings() {
   if (!isConfigured) return loadLocal('settings', DEMO_SETTINGS);
-  const { data, error } = await supabase.from('site_content').select('*').eq('section', '_setting').order('key', { ascending: true });
-  if (error) throw error;
+  const data = await rest('GET', 'site_content?select=*&section=eq._setting&order=key.asc');
+  if (!data) return [];
   return data;
 }
 
@@ -387,10 +356,9 @@ export async function updateSiteSetting(id, value) {
     saveLocal('settings', settings);
     return settings[idx];
   }
-  const { data, error } = await supabase.from('site_content').update({
+  const data = await rest('PATCH', 'site_content?id=eq.' + id + '&select=id', {
     value_it: value, value_en: value, updated_at: new Date().toISOString()
-  }).eq('id', id).select('id');
-  if (error) throw error;
+  });
   if (!data || data.length === 0) throw new Error('Nessuna impostazione aggiornata: ID non trovato.');
   return data[0];
 }

@@ -1,5 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { signOut, getOrders, getProducts } from '../lib/admin';
+import { isConfigured } from '../lib/supabase/client';
+import { subscribeInserts, playNotificationSound, playCustomerSound } from '../lib/notifications';
 import AdminHome from './AdminHome';
 import AdminProducts from './AdminProducts';
 import AdminOrders from './AdminOrders';
@@ -7,7 +9,7 @@ import AdminContent from './AdminContent';
 import AdminCustomers from './AdminCustomers';
 import {
   LayoutDashboard, Package, ShoppingCart, FileText, Users,
-  LogOut, ChevronLeft, Menu, Bell
+  LogOut, ChevronLeft, Menu, Bell, X, MessageCircle, UserPlus
 } from 'lucide-react';
 
 const NAV_ITEMS = [
@@ -23,16 +25,69 @@ function getNavLabel(id) {
   return item ? item.label : 'Dashboard';
 }
 
+const STATUS_LABELS = {
+  pending: 'In attesa', paid: 'Pagato', preparing: 'In preparazione',
+  ready: 'Pronto', completed: 'Completato', cancelled: 'Annullato',
+};
+
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('home');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [pendingCount, setPendingCount] = useState(0);
+  const [toast, setToast] = useState(null); // { type, title, message, id }
+
+  // Show a toast notification and auto-dismiss after 6s
+  const showToast = useCallback(function(type, title, message) {
+    const id = Date.now() + Math.random();
+    setToast({ type, title, message, id });
+    setTimeout(function() {
+      setToast(function(current) {
+        if (current && current.id === id) return null;
+        return current;
+      });
+    }, 6000);
+  }, []);
 
   useEffect(() => {
     loadPendingCount();
     const interval = setInterval(loadPendingCount, 30000);
     return () => clearInterval(interval);
   }, []);
+
+  // ── Realtime subscriptions ──
+  useEffect(function() {
+    if (!isConfigured) return;
+
+    const unsubOrder = subscribeInserts('orders', function(newOrder) {
+      playNotificationSound();
+      const name = newOrder.customer_name || 'Cliente sconosciuto';
+      showToast(
+        'order',
+        'Nuovo ordine! #' + newOrder.id,
+        name + ' — ' + (newOrder.total ? parseFloat(newOrder.total).toFixed(2).replace('.', ',') + '€' : '')
+      );
+      // Refresh pending count
+      loadPendingCount();
+      // Also switch tab notification badge
+      if (newOrder.status === 'pending' || newOrder.status === 'paid') {
+        setPendingCount(function(c) { return c + 1; });
+      }
+    });
+
+    const unsubCustomer = subscribeInserts('customers', function(newCustomer) {
+      playCustomerSound();
+      showToast(
+        'customer',
+        'Nuovo cliente!',
+        newCustomer.name || 'Sconosciuto'
+      );
+    });
+
+    return function() {
+      unsubOrder();
+      unsubCustomer();
+    };
+  }, [showToast]);
 
   async function loadPendingCount() {
     try {
@@ -125,6 +180,33 @@ export default function AdminDashboard() {
           </a>
         </div>
       </aside>
+
+      {/* ═══ Toast notifications ═══ */}
+      {toast && (
+        <div className="fixed top-4 right-4 z-[100] max-w-sm animate-slide-in">
+          <div className={`rounded-2xl border p-4 shadow-xl backdrop-blur-md flex items-start gap-3 ${
+            toast.type === 'order'
+              ? 'bg-blue-600/20 border-blue-500/30'
+              : 'bg-emerald-600/20 border-emerald-500/30'
+          }`}>
+            <div className={`mt-0.5 shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
+              toast.type === 'order' ? 'bg-blue-500/20 text-blue-400' : 'bg-emerald-500/20 text-emerald-400'
+            }`}>
+              {toast.type === 'order' ? <MessageCircle size={16} /> : <UserPlus size={16} />}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-white text-sm font-medium">{toast.title}</p>
+              <p className="text-text-dim text-xs mt-0.5">{toast.message}</p>
+            </div>
+            <button
+              onClick={() => setToast(null)}
+              className="text-text-dim hover:text-white p-0.5 shrink-0"
+            >
+              <X size={14} />
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* ═══ Main content ═══ */}
       <div className="flex-1 min-w-0 flex flex-col">

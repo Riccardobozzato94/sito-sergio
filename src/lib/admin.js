@@ -39,15 +39,12 @@ function apiHeaders() {
  *  Lancia errore per HTTP non-ok. */
 async function rest(method, path, body) {
   if (!SUPABASE_URL) throw new Error('Supabase non configurato');
-  const url = SUPABASE_URL + '/rest/v1/' + path;
-  console.log('[Admin] rest', method, url, body ? 'body=' + JSON.stringify(body).slice(0,100) : 'no-body');
-  const res = await fetch(url, {
+  const res = await fetch(SUPABASE_URL + '/rest/v1/' + path, {
     method,
     headers: apiHeaders(),
     body: body ? JSON.stringify(body) : void 0,
   });
   const txt = await res.text();
-  console.log('[Admin] rest response status=', res.status, 'body=', txt.slice(0,200));
   if (!res.ok) {
     let msg = txt;
     try { const j = JSON.parse(txt); msg = j.message || j.msg || txt; } catch {}
@@ -126,12 +123,14 @@ const PRODUCT_ALLOWED_COLUMNS = [
   'stock_weight_kg', 'low_stock_threshold_kg', 'display_order',
 ];
 
-/** Filtra un oggetto tenendo solo le colonne consentite per la tabella products */
+/** Filtra un oggetto tenendo solo le colonne consentite per la tabella products.
+ *  Usa Object.keys() invece di 'in' operator per evitare edge case
+ *  con oggetti costruiti tramite spread o Object.assign. */
 function sanitizeProductPayload(payload) {
   const safe = {};
-  PRODUCT_ALLOWED_COLUMNS.forEach(function(col) {
-    if (col in payload && payload[col] !== undefined) {
-      safe[col] = payload[col];
+  Object.keys(payload).forEach(function(key) {
+    if (PRODUCT_ALLOWED_COLUMNS.includes(key) && payload[key] !== undefined) {
+      safe[key] = payload[key];
     }
   });
   return safe;
@@ -259,14 +258,11 @@ export async function updateProduct(id, updates) {
 
   if (updates.name) updates.slug = generateSlug(updates.name);
   const safe = sanitizeProductPayload(updates);
+  // Fallback: se safe è vuoto ma updates ha campi validi, usa updates direttamente
+  const body = Object.keys(safe).length > 0 ? safe : updates;
 
-  console.log('[Admin] updateProduct id=', id, 'safe payload keys=', Object.keys(safe), 'safe=', JSON.stringify(safe).slice(0,200));
-  const data = await rest('PATCH', 'products?id=eq.' + Number(id) + '&select=id,name,slug', safe);
-  console.log('[Admin] updateProduct result=', data);
-  if (!data || data.length === 0) {
-    const keys = Object.keys(safe).join(',');
-    throw new Error('Nessun prodotto aggiornato (id=' + id + ', keys=' + keys + '). Verifica che il prodotto esista o contatta supporto.');
-  }
+  const data = await rest('PATCH', 'products?id=eq.' + Number(id) + '&select=id,name,slug', body);
+  if (!data || data.length === 0) throw new Error('Nessun prodotto aggiornato: ID non trovato o permessi insufficienti.');
   return data[0];
 }
 

@@ -132,6 +132,7 @@ export const CONTENT_SECTIONS = [
   { id: 'products', label: '🥖 Prodotti' },
   { id: 'about', label: '📖 Chi Siamo' },
   { id: 'gallery', label: '🖼️ Gallery' },
+  { id: 'gallery_photos', label: '🖼️ Didascalie Foto Gallery' },
   { id: 'reviews', label: '⭐ Recensioni' },
   { id: 'contacts', label: '📞 Contatti' },
   { id: 'hours', label: '🕐 Orari' },

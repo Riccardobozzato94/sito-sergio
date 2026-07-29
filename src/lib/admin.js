@@ -39,12 +39,15 @@ function apiHeaders() {
  *  Lancia errore per HTTP non-ok. */
 async function rest(method, path, body) {
   if (!SUPABASE_URL) throw new Error('Supabase non configurato');
-  const res = await fetch(SUPABASE_URL + '/rest/v1/' + path, {
+  const url = SUPABASE_URL + '/rest/v1/' + path;
+  console.log('[Admin] rest', method, url, body ? 'body=' + JSON.stringify(body).slice(0,100) : 'no-body');
+  const res = await fetch(url, {
     method,
     headers: apiHeaders(),
     body: body ? JSON.stringify(body) : void 0,
   });
   const txt = await res.text();
+  console.log('[Admin] rest response status=', res.status, 'body=', txt.slice(0,200));
   if (!res.ok) {
     let msg = txt;
     try { const j = JSON.parse(txt); msg = j.message || j.msg || txt; } catch {}
@@ -257,8 +260,13 @@ export async function updateProduct(id, updates) {
   if (updates.name) updates.slug = generateSlug(updates.name);
   const safe = sanitizeProductPayload(updates);
 
+  console.log('[Admin] updateProduct id=', id, 'safe payload keys=', Object.keys(safe), 'safe=', JSON.stringify(safe).slice(0,200));
   const data = await rest('PATCH', 'products?id=eq.' + Number(id) + '&select=id,name,slug', safe);
-  if (!data || data.length === 0) throw new Error('Nessun prodotto aggiornato: ID non trovato o permessi insufficienti.');
+  console.log('[Admin] updateProduct result=', data);
+  if (!data || data.length === 0) {
+    const keys = Object.keys(safe).join(',');
+    throw new Error('Nessun prodotto aggiornato (id=' + id + ', keys=' + keys + '). Verifica che il prodotto esista o contatta supporto.');
+  }
   return data[0];
 }
 

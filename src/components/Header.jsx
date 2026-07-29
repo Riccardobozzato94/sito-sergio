@@ -56,7 +56,7 @@ export default function Header({ cartCount, onCartClick, activeSection }) {
             {/* ═══ Mobile Hamburger ═══ */}
             <div className="flex items-center gap-2">
               <button
-                className="text-primary/80 hover:text-primary p-2 rounded-lg transition-all duration-200 hover:bg-white/[0.04] lg:hidden"
+                className="text-primary/80 hover:text-primary p-2.5 rounded-lg transition-all duration-200 hover:bg-white/[0.04] lg:hidden"
                 onClick={() => setMenuOpen(!menuOpen)}
                 aria-label={t.header_menu}
               >
@@ -104,7 +104,7 @@ export default function Header({ cartCount, onCartClick, activeSection }) {
 
               {/* Cart Button */}
               <button
-                className="relative text-primary/80 hover:text-primary p-2 rounded-lg transition-all duration-200 hover:bg-white/[0.04]"
+                className="relative text-primary/80 hover:text-primary p-2.5 rounded-lg transition-all duration-200 hover:bg-white/[0.04]"
                 onClick={onCartClick}
                 aria-label={t.header_cart}
               >

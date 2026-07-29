@@ -94,7 +94,7 @@ export default function ProductCard({ product, onAdd, onClick }) {
       {/* ═══ Share button — visible on hover AND touch ═══ */}
       <button
         onClick={handleShare}
-        className={`absolute top-3 right-3 z-10 w-8 h-8 rounded-full flex items-center justify-center shadow-lg transition-all duration-200 sm:opacity-0 sm:group-hover:opacity-100 ${
+        className={`absolute top-3 right-3 z-10 w-10 h-10 sm:w-8 sm:h-8 rounded-full flex items-center justify-center shadow-lg transition-all duration-200 sm:opacity-0 sm:group-hover:opacity-100 ${
           shareJustCopied
             ? 'bg-green-500 text-white'
             : 'bg-bg/60 backdrop-blur-sm text-text-dim hover:text-white hover:bg-[#25d366]'
@@ -102,7 +102,7 @@ export default function ProductCard({ product, onAdd, onClick }) {
         aria-label={`${t.product_share_label} ${product.name} WhatsApp`}
         title={t.product_share_whatsapp}
       >
-        {shareJustCopied ? <Check size={14} /> : <Share2 size={13} />}
+        {shareJustCopied ? <Check size={16} /> : <Share2 size={15} />}
       </button>
 
       {/* ═══ Image ═══ */}
@@ -141,7 +141,7 @@ export default function ProductCard({ product, onAdd, onClick }) {
                 <span
                   key={a}
                   title={`Contiene: ${t[info.key]}`}
-                  className={`text-[9px] font-semibold px-1.5 py-0.5 rounded border uppercase tracking-wide ${info.color}`}
+                  className={`text-[10px] sm:text-[9px] font-semibold px-2 py-1 sm:px-1.5 sm:py-0.5 rounded border uppercase tracking-wide ${info.color}`}
                 >
                   {t[info.key]}
                 </span>
@@ -157,7 +157,7 @@ export default function ProductCard({ product, onAdd, onClick }) {
             var msg = 'Ciao! Vorrei ordinare: *' + product.name + '* (' + formatPrice(product.price, product.unit) + ')';
             window.open('https://wa.me/' + BUSINESS.whatsappNumber + '?text=' + encodeURIComponent(msg), '_blank', 'noopener,noreferrer');
           }}
-          className="w-full text-xs font-semibold py-2 rounded-xl border border-[#25d366]/30 text-[#25d366] hover:bg-[#25d366]/5 transition-all duration-300 mb-2 flex items-center justify-center gap-1.5"
+          className="w-full text-xs font-semibold py-3 sm:py-2 rounded-xl border border-[#25d366]/30 text-[#25d366] hover:bg-[#25d366]/5 transition-all duration-300 mb-2 flex items-center justify-center gap-1.5"
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347"/></svg>
           {t.product_order_whatsapp || 'Ordina su WhatsApp'}
@@ -168,7 +168,7 @@ export default function ProductCard({ product, onAdd, onClick }) {
           <div className="mb-3">
             <button
               onClick={(e) => { e.stopPropagation(); setShowIngredients(!showIngredients); }}
-              className="text-text-dim text-[10px] uppercase tracking-wider hover:text-primary transition-colors flex items-center gap-1 mx-auto"
+              className="text-text-dim text-xs sm:text-[10px] uppercase tracking-wider hover:text-primary transition-colors flex items-center gap-1 mx-auto py-1"
             >
               {showIngredients ? t.hide_ingredients || 'Nascondi ingredienti' : t.show_ingredients || 'Mostra ingredienti'}
               <span className={`inline-block transition-transform duration-200 ${showIngredients ? 'rotate-180' : ''}`}>▾</span>

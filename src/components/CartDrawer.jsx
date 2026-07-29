@@ -215,10 +215,10 @@ export default function CartDrawer({ isOpen, onClose, items, onUpdateQuantity })
             {/* ═══ Delivery Method Selection ═══ */}
             <div>
               <label className="text-text-dim text-xs uppercase tracking-wider mb-2 block">{t.cart_delivery_label}</label>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
                 <button
                   onClick={() => setFormData({ ...formData, deliveryMethod: 'pickup' })}
-                  className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border text-xs font-medium transition-all duration-200 ${
+                  className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border text-xs sm:text-xs font-medium transition-all duration-200 ${
                     formData.deliveryMethod === 'pickup'
                       ? 'border-primary bg-primary/10 text-primary'
                       : 'border-border text-text-dim hover:border-white/20'
@@ -230,7 +230,7 @@ export default function CartDrawer({ isOpen, onClose, items, onUpdateQuantity })
 
                 <button
                   onClick={() => setFormData({ ...formData, deliveryMethod: 'courier' })}
-                  className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border text-xs font-medium transition-all duration-200 ${
+                  className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border text-xs sm:text-xs font-medium transition-all duration-200 ${
                     formData.deliveryMethod === 'courier'
                       ? 'border-primary bg-primary/10 text-primary'
                       : 'border-border text-text-dim hover:border-white/20'
@@ -242,7 +242,7 @@ export default function CartDrawer({ isOpen, onClose, items, onUpdateQuantity })
 
                 <button
                   onClick={() => setFormData({ ...formData, deliveryMethod: 'reservation' })}
-                  className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border text-xs font-medium transition-all duration-200 ${
+                  className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border text-xs sm:text-xs font-medium transition-all duration-200 ${
                     formData.deliveryMethod === 'reservation'
                       ? 'border-primary bg-primary/10 text-primary'
                       : 'border-border text-text-dim hover:border-white/20'

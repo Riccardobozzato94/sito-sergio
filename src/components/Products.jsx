@@ -161,7 +161,7 @@ export default function Products({ onAddToCart }) {
               <button
                 key={key}
                 onClick={() => handleCategoryChange(key)}
-                className={`tab-pill px-5 sm:px-6 py-2.5 rounded-full text-sm font-medium border ${
+                className={`tab-pill px-5 sm:px-6 py-3 sm:py-2.5 rounded-full text-sm font-medium border ${
                   activeCategory === key
                     ? 'active'
                     : 'text-text-muted bg-transparent border-border hover:border-primary/30'
@@ -176,7 +176,7 @@ export default function Products({ onAddToCart }) {
           <div className="flex flex-wrap justify-center gap-2">
             <button
               onClick={() => setActiveDiet(null)}
-              className={`tab-pill px-4 py-2 rounded-full text-xs font-medium border ${
+              className={`tab-pill px-4 py-3 sm:py-2 rounded-full text-xs font-medium border ${
                 !activeDiet
                   ? 'active'
                   : 'text-text-muted bg-transparent border-border hover:border-primary/30'
@@ -186,7 +186,7 @@ export default function Products({ onAddToCart }) {
             </button>
             <button
               onClick={() => setActiveDiet('vegan')}
-              className={`tab-pill px-4 py-2 rounded-full text-xs font-medium border ${
+              className={`tab-pill px-4 py-3 sm:py-2 rounded-full text-xs font-medium border ${
                 activeDiet === 'vegan'
                   ? 'bg-green-500/20 border-green-500/40 text-green-400'
                   : 'text-text-muted bg-transparent border-border hover:border-primary/30'
@@ -196,7 +196,7 @@ export default function Products({ onAddToCart }) {
             </button>
             <button
               onClick={() => setActiveDiet('senza_lattosio')}
-              className={`tab-pill px-4 py-2 rounded-full text-xs font-medium border ${
+              className={`tab-pill px-4 py-3 sm:py-2 rounded-full text-xs font-medium border ${
                 activeDiet === 'senza_lattosio'
                   ? 'bg-blue-500/20 border-blue-500/40 text-blue-400'
                   : 'text-text-muted bg-transparent border-border hover:border-primary/30'
@@ -206,7 +206,7 @@ export default function Products({ onAddToCart }) {
             </button>
             <button
               onClick={() => setActiveDiet('integrale')}
-              className={`tab-pill px-4 py-2 rounded-full text-xs font-medium border ${
+              className={`tab-pill px-4 py-3 sm:py-2 rounded-full text-xs font-medium border ${
                 activeDiet === 'integrale'
                   ? 'bg-amber-500/20 border-amber-500/40 text-amber-400'
                   : 'text-text-muted bg-transparent border-border hover:border-primary/30'

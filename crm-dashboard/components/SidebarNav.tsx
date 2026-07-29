@@ -4,7 +4,7 @@ import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import {
   LayoutDashboard, Package, Users, ShoppingCart,
-  Warehouse, Tag, TrendingUp,
+  Warehouse, Tag, TrendingUp, FileText,
 } from 'lucide-react';
 
 const navItems = [
@@ -14,6 +14,7 @@ const navItems = [
   { href: '/products', label: 'Prodotti', icon: ShoppingCart },
   { href: '/inventory', label: 'Inventario', icon: Warehouse },
   { href: '/promotions', label: 'Promozioni', icon: Tag },
+  { href: '/content', label: 'Contenuti', icon: FileText },
   { href: '/analytics', label: 'Analytics', icon: TrendingUp },
 ];
 

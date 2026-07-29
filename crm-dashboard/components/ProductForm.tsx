@@ -191,13 +191,13 @@ export default function ProductForm({ isOpen, onClose, product, onSuccess }: Pro
 
     try {
       const { error: uploadError } = await supabase.storage
-        .from('images')
+        .from('product-images')
         .upload(filePath, file, { upsert: true });
 
       if (uploadError) throw uploadError;
 
       const { data: { publicUrl } } = supabase.storage
-        .from('images')
+        .from('product-images')
         .getPublicUrl(filePath);
 
       setFormData(prev => ({ ...prev, image_url: publicUrl }));
@@ -269,7 +269,26 @@ export default function ProductForm({ isOpen, onClose, product, onSuccess }: Pro
                 {formData.image_url && (
                   <button
                     type="button"
-                    onClick={() => setFormData(prev => ({ ...prev, image_url: null }))}
+                    onClick={async () => {
+                      // Cancella il file dallo storage Supabase
+                      const supabase = createBrowserClient();
+                      const url = formData.image_url;
+                      // Estrai il percorso del file dall'URL pubblico
+                      // URL formato: https://{project}.supabase.co/storage/v1/object/public/product-images/products/{fileName}
+                      const matches = url.match(/\/product-images\/(.+)$/);
+                      if (matches) {
+                        const filePath = matches[1];
+                        const { error: deleteError } = await supabase.storage
+                          .from('product-images')
+                          .remove([filePath]);
+                        if (deleteError) {
+                          toastError('Errore', 'Impossibile eliminare il file dallo storage');
+                          return;
+                        }
+                      }
+                      setFormData(prev => ({ ...prev, image_url: null }));
+                      success('Immagine rimossa', '');
+                    }}
                     className="mt-2 text-xs text-red-400 hover:text-red-300 transition-colors"
                   >
                     Rimuovi immagine

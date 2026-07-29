@@ -79,6 +79,21 @@ export default function ProductsPage() {
     if (!confirm(`Eliminare "${product.name}"? Questa azione non può essere annullata.`)) return;
     const supabase = createBrowserClient();
 
+    // 0. Se il prodotto ha un'immagine su Supabase Storage, cancellala prima
+    if (product.image_url) {
+      const matches = product.image_url.match(/\/product-images\/(.+)$/);
+      if (matches) {
+        const filePath = matches[1];
+        await supabase.storage
+          .from('product-images')
+          .remove([filePath])
+          .catch(() => {
+            // Ignora errori di cancellazione immagine — non blocchiamo l'eliminazione prodotto
+            console.warn('Impossibile cancellare immagine dallo storage:', filePath);
+          });
+      }
+    }
+
     // 1. Prova l'eliminazione
     const { data: deletedData, error } = await supabase
       .from('products')

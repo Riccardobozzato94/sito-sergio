@@ -137,6 +137,7 @@ export default function AdminProducts() {
         dietary: form.dietary || [],
         ingredients: form.ingredients || '',
       };
+      console.log('[💾] handleSave editing=', editing, 'form keys=', Object.keys(form).join(','), 'payload keys=', Object.keys(payload).join(','));
       if (editing === 'new') await createProduct(payload);
       else await updateProduct(editing, payload);
       setSuccess(editing === 'new' ? 'Prodotto creato!' : 'Prodotto aggiornato!');

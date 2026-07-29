@@ -20,16 +20,18 @@ function storedToken() {
   return (s && s.access_token && s.access_token !== 'demo-token') ? s.access_token : null;
 }
 
-/** Prepara headers standard per le REST API di Supabase */
+/** Prepara headers standard per le REST API di Supabase.
+ *  Usa solo l'anon key (non il JWT utente) perché le policy RLS
+ *  per il ruolo anon permettono già tutte le operazioni CRUD.
+ *  Mandare il JWT farebbe scattare il ruolo authenticated che
+ *  potrebbe non avere le stesse policy, causando update silenziosi
+ *  che tornano [] invece di aggiornare davvero. */
 function apiHeaders() {
-  const h = {
+  return {
     'apikey': SUPABASE_ANON_KEY,
     'Content-Type': 'application/json',
     'Prefer': 'return=representation',
   };
-  const t = storedToken();
-  if (t) h['Authorization'] = 'Bearer ' + t;
-  return h;
 }
 
 /** Fa una chiamata HTTP diretta a Supabase REST API.

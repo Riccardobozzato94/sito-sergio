@@ -261,7 +261,7 @@ export async function updateProduct(id, updates) {
   const safe = sanitizeProductPayload(updates);
   const body = Object.keys(safe).length > 0 ? safe : updates;
 
-  console.log('[✏️] body=', JSON.stringify(body));
+  console.log('[✏️] updateProduct called id=', id, '| updates=', JSON.stringify(updates).slice(0,200), '| safe=', JSON.stringify(safe).slice(0,200), '| body=', JSON.stringify(body).slice(0,200));
   const data = await rest('PATCH', 'products?id=eq.' + Number(id) + '&select=id,name,slug', body);
   console.log('[✏️] data=', data, 'length=', data ? data.length : 'null');
 

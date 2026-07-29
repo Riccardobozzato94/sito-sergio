@@ -5,6 +5,47 @@
 
 import { supabase, isConfigured } from './supabase/client';
 
+// ═══════════════════════════════════════════════════════════
+// Direct Supabase REST helper — bypasses supabase-js client
+// session management. Uses JWT from app's localStorage.
+// ═══════════════════════════════════════════════════════════
+
+function getStoredToken() {
+  const session = loadLocal('session', null);
+  if (session && session.access_token && session.access_token !== 'demo-token') {
+    return session.access_token;
+  }
+  return null;
+}
+
+function getSupabaseHeaders() {
+  const token = getStoredToken();
+  const headers = {
+    'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY || '',
+    'Content-Type': 'application/json',
+    'Prefer': 'return=representation',
+  };
+  if (token) {
+    headers['Authorization'] = 'Bearer ' + token;
+  }
+  return headers;
+}
+
+async function supabaseFetch(method, path, body) {
+  const baseUrl = import.meta.env.VITE_SUPABASE_URL || '';
+  if (!baseUrl) throw new Error('Supabase non configurato');
+  const url = baseUrl + '/rest/v1/' + path;
+  const resp = await fetch(url, {
+    method,
+    headers: getSupabaseHeaders(),
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  const text = await resp.text();
+  if (!resp.ok) throw new Error(text);
+  if (!text || text === '[]') return [];
+  try { return JSON.parse(text); } catch { return []; }
+}
+
 // ── Demo data for offline mode ──
 
 const DEMO_PRODUCTS = [
@@ -136,7 +177,7 @@ export async function signIn(email, password) {
 }
 
 export async function signOut() {
-  localStorage.removeItem('session');
+  localStorage.removeItem('admin-session');
   if (isConfigured) {
     const result = await supabase.auth.signOut();
     if (result.error) throw result.error;
@@ -146,10 +187,19 @@ export async function signOut() {
 export async function getSession() {
   const localSession = loadLocal('session', null);
   if (localSession && localSession.expires_at > Date.now()) {
+    // Ensure supabase client has this session (in case it was lost)
+    if (isConfigured && localSession.access_token && localSession.access_token !== 'demo-token') {
+      supabase.auth.setSession({
+        access_token: localSession.access_token,
+        refresh_token: localSession.refresh_token || '',
+      }).catch(function() {
+        // Silently ignore — the fallback will handle it
+      });
+    }
     return localSession;
   }
   if (localSession) {
-    localStorage.removeItem('session');
+    localStorage.removeItem('admin-session');
   }
   if (isConfigured) {
     const result = await supabase.auth.getSession();
@@ -182,10 +232,18 @@ export async function createProduct(product) {
   const slug = generateSlug(product.name);
   const safeProduct = sanitizeProductPayload({ ...product, slug });
 
-  const { data, error } = await supabase.from('products').insert([safeProduct]).select('id,name,slug');
-  if (error) throw error;
-  if (!data || data.length === 0) throw new Error('Inserimento fallito: nessuna riga creata.');
-  return data[0];
+  // Try supabase-js client first, fallback to direct fetch with stored JWT
+  try {
+    const { data, error } = await supabase.from('products').insert([safeProduct]).select('id,name,slug');
+    if (error) throw error;
+    if (!data || data.length === 0) throw new Error('Nessun dato');
+    return data[0];
+  } catch (e) {
+    // Fallback: direct HTTP call using JWT from localStorage
+    const data = await supabaseFetch('POST', 'products?select=id,name,slug', safeProduct);
+    if (!data || data.length === 0) throw new Error('Inserimento fallito: nessuna riga creata.');
+    return data[0];
+  }
 }
 
 export async function updateProduct(id, updates) {
@@ -205,10 +263,19 @@ export async function updateProduct(id, updates) {
 
   const safeUpdates = sanitizeProductPayload(updates);
 
-  const { data, error } = await supabase.from('products').update(safeUpdates).eq('id', Number(id)).select('id,name,slug');
-  if (error) throw error;
-  if (!data || data.length === 0) throw new Error('Nessun prodotto aggiornato: ID non trovato o permessi insufficienti.');
-  return data[0];
+  // Try supabase-js client first, fallback to direct fetch with stored JWT
+  try {
+    const { data, error } = await supabase.from('products').update(safeUpdates).eq('id', Number(id)).select('id,name,slug');
+    if (error) throw error;
+    if (!data || data.length === 0) throw new Error('Nessun dato');
+    return data[0];
+  } catch (e) {
+    // Fallback: direct HTTP call using JWT from localStorage
+    const path = 'products?id=eq.' + Number(id) + '&select=id,name,slug';
+    const data = await supabaseFetch('PATCH', path, safeUpdates);
+    if (!data || data.length === 0) throw new Error('Nessun prodotto aggiornato: ID non trovato o permessi insufficienti.');
+    return data[0];
+  }
 }
 
 export async function deleteProduct(id) {
@@ -219,15 +286,26 @@ export async function deleteProduct(id) {
     return;
   }
 
-  const { data, error } = await supabase.from('products').delete().eq('id', Number(id)).select('id');
-  if (error) {
-    if (error.message && error.message.indexOf('foreign key') !== -1) {
-      throw new Error('Prodotto presente in ordini esistenti. Rimuovi prima i riferimenti.');
+  // Try supabase-js client first, fallback to direct fetch with stored JWT
+  try {
+    const { data, error } = await supabase.from('products').delete().eq('id', Number(id)).select('id');
+    if (error) {
+      if (error.message && error.message.indexOf('foreign key') !== -1) {
+        throw new Error('Prodotto presente in ordini esistenti. Rimuovi prima i riferimenti.');
+      }
+      throw error;
     }
-    throw error;
-  }
-  if (!data || data.length === 0) {
-    throw new Error('Nessuna riga eliminata: potresti non avere i permessi necessari.');
+    if (!data || data.length === 0) {
+      throw new Error('Nessuna riga eliminata: potresti non avere i permessi necessari.');
+    }
+  } catch (e) {
+    // Fallback: direct HTTP call using JWT from localStorage
+    if (e.message && e.message.indexOf('foreign key') !== -1) throw e;
+    const path = 'products?id=eq.' + Number(id) + '&select=id';
+    const data = await supabaseFetch('DELETE', path);
+    if (!data || data.length === 0) {
+      throw new Error('Nessuna riga eliminata: potresti non avere i permessi necessari.');
+    }
   }
 }
 

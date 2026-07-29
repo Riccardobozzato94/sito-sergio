@@ -358,6 +358,70 @@ export async function updateSiteSetting(id, value) {
   return data[0];
 }
 
+// ── CUSTOMERS ──
+
+export async function getCustomers() {
+  if (!isConfigured) return [];
+  const data = await rest('GET', 'customers?select=*&order=name.asc');
+  return data || [];
+}
+
+export async function createCustomer(data) {
+  if (!isConfigured) {
+    throw new Error('Modalità demo: impossibile creare clienti.');
+  }
+  const result = await rest('POST', 'customers?select=*', data);
+  if (!result || result.length === 0) throw new Error('Creazione cliente fallita.');
+  return result[0];
+}
+
+export async function updateCustomer(id, updates) {
+  if (!isConfigured) throw new Error('Modalità demo: impossibile aggiornare clienti.');
+  const data = await rest('PATCH', 'customers?id=eq.' + Number(id) + '&select=*', updates);
+  if (!data || data.length === 0) throw new Error('Nessun cliente aggiornato: ID non trovato.');
+  return data[0];
+}
+
+export async function deleteCustomer(id) {
+  if (!isConfigured) throw new Error('Modalità demo: impossibile eliminare clienti.');
+  const data = await rest('DELETE', 'customers?id=eq.' + Number(id) + '&select=id');
+  if (!data || data.length === 0) throw new Error('Nessun cliente eliminato.');
+  return data[0];
+}
+
+/** Importa clienti da testo CSV (nome;telefono;email;note).
+ *  Ignora la prima riga (header). Salta righe vuote. */
+export async function importCustomersCSV(csvText) {
+  if (!isConfigured) throw new Error('Modalità demo: impossibile importare clienti.');
+  const lines = csvText.split('\n').filter(Boolean);
+  const rows = lines.slice(1); // skip header
+  const results = { imported: 0, skipped: 0, errors: [] };
+  for (const line of rows) {
+    const parts = line.split(';').map(s => s.trim());
+    const [name, phone, email, notes] = parts;
+    if (!name) { results.skipped++; continue; }
+    try {
+      await createCustomer({ name, phone: phone || null, email: email || null, notes: notes || '' });
+      results.imported++;
+    } catch (e) {
+      // Skip duplicates silently
+      if (e.message && (e.message.indexOf('uq_customers_phone') !== -1 || e.message.indexOf('uq_customers_email') !== -1)) {
+        results.skipped++;
+      } else {
+        results.errors.push(name + ': ' + e.message);
+      }
+    }
+  }
+  return results;
+}
+
+/** Restituisce gli ordini di un cliente */
+export async function getCustomerOrders(customerId) {
+  if (!isConfigured) return [];
+  const data = await rest('GET', 'orders?select=*&customer_id=eq.' + Number(customerId) + '&order=created_at.desc');
+  return data || [];
+}
+
 // ── IMAGE UPLOAD ──
 
 /**

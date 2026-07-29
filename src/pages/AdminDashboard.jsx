@@ -4,8 +4,9 @@ import AdminHome from './AdminHome';
 import AdminProducts from './AdminProducts';
 import AdminOrders from './AdminOrders';
 import AdminContent from './AdminContent';
+import AdminCustomers from './AdminCustomers';
 import {
-  LayoutDashboard, Package, ShoppingCart, FileText,
+  LayoutDashboard, Package, ShoppingCart, FileText, Users,
   LogOut, ChevronLeft, Menu, Bell
 } from 'lucide-react';
 
@@ -13,6 +14,7 @@ const NAV_ITEMS = [
   { id: 'home', label: 'Dashboard', icon: LayoutDashboard },
   { id: 'products', label: 'Prodotti', icon: Package },
   { id: 'orders', label: 'Ordini', icon: ShoppingCart },
+  { id: 'customers', label: 'Clienti', icon: Users },
   { id: 'content', label: 'Testi Sito', icon: FileText },
 ];
 
@@ -49,6 +51,7 @@ export default function AdminDashboard() {
       case 'home': return <AdminHome onNavigate={setActiveTab} />;
       case 'products': return <AdminProducts />;
       case 'orders': return <AdminOrders />;
+      case 'customers': return <AdminCustomers />;
       case 'content': return <AdminContent />;
       default: return <AdminHome onNavigate={setActiveTab} />;
     }

@@ -862,10 +862,12 @@ function GalleryPanel() {
   // ── Upload new photo ──
   async function handleUpload(files) {
     if (!files || files.length === 0) return;
+    const fileList = Array.from(files); // converte subito in array perché FileList viene invalidato dal reset del value
+    const fileCount = fileList.length;
     setUploading(true);
     setError('');
     try {
-      for (const file of files) {
+      for (const file of fileList) {
         console.log('[Gallery] Uploading file:', file.name);
         const imageUrl = await uploadGalleryImage(file);
         console.log('[Gallery] Upload result URL:', imageUrl);
@@ -876,7 +878,7 @@ function GalleryPanel() {
           sort_order: photos.length + 1,
         });
       }
-      setSuccess(files.length + (files.length === 1 ? ' foto caricata' : ' foto caricate') + '!');
+      setSuccess(fileCount + (fileCount === 1 ? ' foto caricata' : ' foto caricate') + '!');
       await loadPhotos();
       setTimeout(function() { setSuccess(''); }, 3000);
     } catch (err) {

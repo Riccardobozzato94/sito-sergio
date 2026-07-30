@@ -7,7 +7,7 @@ import { CONTENT_SECTIONS } from '../lib/content';
 import {
   FileText, Check, AlertCircle, Save, RefreshCw, Globe,
   ChevronDown, ChevronRight, Search, ExternalLink,
-  MapPin, BarChart3, Tag,
+  MapPin, BarChart3, Tag, Image,
 } from 'lucide-react';
 
 // ═══════════════════════════════════════════════════════════
@@ -17,6 +17,7 @@ const TABS = [
   { id: 'texts', label: 'Testi del Sito', icon: FileText },
   { id: 'social', label: 'Social & Contatti', icon: Globe },
   { id: 'analytics', label: 'Analytics & SEO', icon: BarChart3 },
+  { id: 'gallery', label: 'Galleria', icon: Image },
 ];
 
 // ═══════════════════════════════════════════════════════════
@@ -58,6 +59,7 @@ export default function AdminContent() {
       {activeTab === 'texts' && <TextsPanel />}
       {activeTab === 'social' && <SocialPanel />}
       {activeTab === 'analytics' && <AnalyticsPanel />}
+      {activeTab === 'gallery' && <GalleryPanel />}
     </div>
   );
 }
@@ -814,6 +816,305 @@ function AnalyticsField({ setting, value, onChange, onSave, saving }) {
           )}
         </button>
       </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════
+// TAB 4: GALLERIA FOTO
+// ═══════════════════════════════════════════════════════════
+function GalleryPanel() {
+  const [photos, setPhotos] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [uploading, setUploading] = useState(false);
+  const [savingId, setSavingId] = useState(null);
+  const [deletingId, setDeletingId] = useState(null);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [editAlts, setEditAlts] = useState({}); // { id: { alt_it, alt_en } }
+
+  useEffect(() => { loadPhotos(); }, []);
+
+  async function loadPhotos() {
+    try {
+      setLoading(true);
+      const { getGalleryPhotos } = await import('../lib/admin');
+      const data = await getGalleryPhotos();
+      setPhotos(data || []);
+      // Init edit alts
+      const alts = {};
+      (data || []).forEach(function(p) {
+        alts[p.id] = { alt_it: p.alt_it || '', alt_en: p.alt_en || '' };
+      });
+      setEditAlts(alts);
+    } catch (err) {
+      setError('Errore caricamento foto: ' + err.message);
+      setTimeout(function() { setError(''); }, 3000);
+    } finally { setLoading(false); }
+  }
+
+  // ── Upload new photo ──
+  async function handleUpload(files) {
+    if (!files || files.length === 0) return;
+    setUploading(true);
+    setError('');
+    try {
+      const { uploadGalleryImage, createGalleryPhoto } = await import('../lib/admin');
+      for (const file of files) {
+        const imageUrl = await uploadGalleryImage(file);
+        await createGalleryPhoto({
+          image_url: imageUrl,
+          alt_it: file.name.replace(/\.[^.]+$/, '').replace(/[-_]/g, ' '),
+          alt_en: '',
+          sort_order: photos.length + 1,
+        });
+      }
+      setSuccess(files.length + (files.length === 1 ? ' foto caricata' : ' foto caricate') + '!');
+      await loadPhotos();
+      setTimeout(function() { setSuccess(''); }, 3000);
+    } catch (err) {
+      setError('Errore upload: ' + err.message);
+      setTimeout(function() { setError(''); }, 4000);
+    } finally { setUploading(false); }
+  }
+
+  // ── Save alt text ──
+  async function handleSaveAlt(id) {
+    const alts = editAlts[id];
+    if (!alts) return;
+    setSavingId(id);
+    try {
+      const { updateGalleryPhoto } = await import('../lib/admin');
+      await updateGalleryPhoto(id, { alt_it: alts.alt_it, alt_en: alts.alt_en });
+      setSuccess('Didascalia aggiornata!');
+      setTimeout(function() { setSuccess(''); }, 2500);
+    } catch (err) {
+      setError('Errore salvataggio: ' + err.message);
+      setTimeout(function() { setError(''); }, 3000);
+    } finally { setSavingId(null); }
+  }
+
+  // ── Delete photo ──
+  async function handleDelete(id) {
+    if (!window.confirm('Eliminare questa foto dalla galleria?')) return;
+    setDeletingId(id);
+    try {
+      const { deleteGalleryPhoto } = await import('../lib/admin');
+      await deleteGalleryPhoto(id);
+      setSuccess('Foto eliminata!');
+      await loadPhotos();
+      setTimeout(function() { setSuccess(''); }, 2500);
+    } catch (err) {
+      setError('Errore eliminazione: ' + err.message);
+      setTimeout(function() { setError(''); }, 3000);
+    } finally { setDeletingId(null); }
+  }
+
+  // ── Move photo up/down ──
+  async function handleReorder(id, direction) {
+    const idx = photos.findIndex(function(p) { return p.id === id; });
+    if (idx === -1) return;
+    const newIdx = idx + direction;
+    if (newIdx < 0 || newIdx >= photos.length) return;
+
+    const swapped = [...photos];
+    const temp = swapped[idx];
+    swapped[idx] = swapped[newIdx];
+    swapped[newIdx] = temp;
+
+    // Update sort_order
+    const orderedIds = swapped.map(function(p) { return p.id; });
+    try {
+      const { reorderGalleryPhotos } = await import('../lib/admin');
+      await reorderGalleryPhotos(orderedIds);
+      setSuccess('Ordine aggiornato!');
+      await loadPhotos();
+      setTimeout(function() { setSuccess(''); }, 2500);
+    } catch (err) {
+      setError('Errore riordino: ' + err.message);
+      setTimeout(function() { setError(''); }, 3000);
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      {/* ═══ Notifications ═══ */}
+      {success && (
+        <div className="mb-4 bg-green-500/10 border border-green-500/20 rounded-xl p-3 flex items-center gap-2 animate-fade-in">
+          <Check size={16} className="text-green-400 shrink-0" />
+          <span className="text-green-400 text-sm">{success}</span>
+        </div>
+      )}
+      {error && (
+        <div className="mb-4 bg-red-500/10 border border-red-500/20 rounded-xl p-3 flex items-start gap-2">
+          <AlertCircle size={16} className="text-red-400 mt-0.5 shrink-0" />
+          <span className="text-red-400 text-sm">{error}</span>
+        </div>
+      )}
+
+      {/* ═══ Upload Area ═══ */}
+      <div className="bg-[#201c17] border border-white/[0.04] rounded-xl p-5 mb-6">
+        <div className="flex items-center gap-2 mb-3">
+          <Image size={16} className="text-primary" />
+          <h3 className="font-heading text-primary text-xs uppercase tracking-widest">Aggiungi Foto</h3>
+        </div>
+        <label className={`flex flex-col items-center justify-center border-2 border-dashed border-white/[0.08] rounded-xl py-8 px-4 cursor-pointer hover:border-primary/40 hover:bg-white/[0.02] transition-all duration-200 ${uploading ? 'opacity-50 pointer-events-none' : ''}`}>
+          <svg className="w-10 h-10 text-text-dim mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+          </svg>
+          {uploading ? (
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+              <span className="text-text-dim text-sm">Caricamento in corso...</span>
+            </div>
+          ) : (
+            <>
+              <span className="text-white text-sm font-medium mb-1">Clicca per caricare foto</span>
+              <span className="text-text-dim text-[11px]">JPG, PNG, WebP — Max 5MB ciascuna</span>
+            </>
+          )}
+          <input
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            multiple
+            disabled={uploading}
+            onChange={function(e) { handleUpload(e.target.files); e.target.value = ''; }}
+            className="hidden"
+          />
+        </label>
+      </div>
+
+      {/* ═══ Photo Grid ═══ */}
+      {photos.length === 0 ? (
+        <div className="text-center py-16 text-text-dim">
+          <Image size={40} className="mx-auto mb-4 opacity-30" />
+          <p className="text-sm">Nessuna foto nella galleria</p>
+          <p className="text-text-dim text-xs mt-1">Carica la prima foto usando il pulsante sopra.</p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <p className="text-text-dim text-xs">
+              <span className="text-white font-bold tabular-nums">{photos.length}</span> foto
+            </p>
+            <button
+              onClick={loadPhotos}
+              className="p-2 rounded-lg border border-border text-text-dim hover:text-white hover:border-white/20 transition-all"
+              title="Ricarica"
+            >
+              <RefreshCw size={14} />
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {photos.map(function(photo, index) {
+              const alts = editAlts[photo.id] || { alt_it: '', alt_en: '' };
+              return (
+                <div key={photo.id} className="bg-[#201c17] border border-white/[0.04] rounded-xl overflow-hidden group">
+                  {/* Image preview */}
+                  <div className="relative aspect-[4/3] bg-bg overflow-hidden">
+                    <img
+                      src={photo.image_url}
+                      alt={photo.alt_it || 'Foto galleria'}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      loading="lazy"
+                    />
+                    {/* Overlay actions */}
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-300 flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100">
+                      <button
+                        onClick={function() { handleReorder(photo.id, -1); }}
+                        disabled={index === 0}
+                        className="p-2 rounded-lg bg-white/20 text-white hover:bg-white/30 disabled:opacity-20 transition-all"
+                        title="Sposta su"
+                      >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="18 15 12 9 6 15" /></svg>
+                      </button>
+                      <button
+                        onClick={function() { handleReorder(photo.id, 1); }}
+                        disabled={index === photos.length - 1}
+                        className="p-2 rounded-lg bg-white/20 text-white hover:bg-white/30 disabled:opacity-20 transition-all"
+                        title="Sposta giù"
+                      >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="6 9 12 15 18 9" /></svg>
+                      </button>
+                      <button
+                        onClick={function() { handleDelete(photo.id); }}
+                        disabled={deletingId === photo.id}
+                        className="p-2 rounded-lg bg-red-500/40 text-white hover:bg-red-500/60 transition-all"
+                        title="Elimina foto"
+                      >
+                        {deletingId === photo.id ? (
+                          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        ) : (
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" /></svg>
+                        )}
+                      </button>
+                    </div>
+                    {/* Sort order badge */}
+                    <div className="absolute top-2 left-2 bg-black/50 text-white text-[10px] font-bold px-2 py-0.5 rounded-full tabular-nums">
+                      #{photo.sort_order || index + 1}
+                    </div>
+                  </div>
+
+                  {/* Alt text editor */}
+                  <div className="p-3 space-y-2">
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-[9px] font-bold text-blue-400 bg-blue-400/10 px-1.5 py-0.5 rounded leading-none">IT</span>
+                        <span className="text-text-dim text-[9px] tabular-nums">{(alts.alt_it || '').length}</span>
+                      </div>
+                      <input
+                        type="text"
+                        value={alts.alt_it}
+                        onChange={function(e) {
+                          setEditAlts(function(prev) { return { ...prev, [photo.id]: { ...(prev[photo.id] || {}), alt_it: e.target.value } }; });
+                        }}
+                        className="w-full bg-bg border border-border rounded-lg px-2.5 py-1.5 text-xs text-white placeholder:text-text-dim/40 focus:outline-none focus:border-primary transition-colors"
+                        placeholder="Didascalia italiana..."
+                      />
+                    </div>
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-[9px] font-bold text-red-400 bg-red-400/10 px-1.5 py-0.5 rounded leading-none">EN</span>
+                        <span className="text-text-dim text-[9px] tabular-nums">{(alts.alt_en || '').length}</span>
+                      </div>
+                      <input
+                        type="text"
+                        value={alts.alt_en}
+                        onChange={function(e) {
+                          setEditAlts(function(prev) { return { ...prev, [photo.id]: { ...(prev[photo.id] || {}), alt_en: e.target.value } }; });
+                        }}
+                        className="w-full bg-bg border border-border rounded-lg px-2.5 py-1.5 text-xs text-white placeholder:text-text-dim/40 focus:outline-none focus:border-primary transition-colors"
+                        placeholder="English caption..."
+                      />
+                    </div>
+                    <button
+                      onClick={function() { handleSaveAlt(photo.id); }}
+                      disabled={savingId === photo.id}
+                      className="w-full py-1.5 rounded-lg bg-primary/10 text-primary border border-primary/20 text-[11px] font-bold hover:bg-primary/20 disabled:opacity-50 flex items-center justify-center gap-1 transition-all"
+                    >
+                      {savingId === photo.id ? (
+                        <div className="w-3 h-3 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+                      ) : (
+                        <Save size={12} />
+                      )}
+                      {savingId === photo.id ? 'Salvataggio...' : 'Salva didascalia'}
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

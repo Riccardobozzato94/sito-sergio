@@ -2,15 +2,34 @@ import { useState, useEffect, useCallback } from 'react';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useLang } from '../App';
 import useFocusTrap from '../lib/useFocusTrap';
-import { GALLERY_PHOTOS } from '../lib/images';
+import { fetchGalleryPhotos, GALLERY_PHOTOS as STATIC_PHOTOS } from '../lib/images';
 
 export default function Gallery() {
   const { t } = useLang();
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [images, setImages] = useState(STATIC_PHOTOS);
+  const [loading, setLoading] = useState(true);
   const lightboxFocusTrapRef = useFocusTrap(lightboxOpen);
 
-  const images = GALLERY_PHOTOS;
+  // Carica foto dal database all'avvio
+  useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      try {
+        const photos = await fetchGalleryPhotos();
+        if (!cancelled && photos && photos.length > 0) {
+          setImages(photos);
+        }
+      } catch (e) {
+        console.warn('[Gallery] Errore caricamento foto:', e.message);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+    load();
+    return () => { cancelled = true; };
+  }, []);
 
   const openLightbox = (index) => {
     setCurrentIndex(index);

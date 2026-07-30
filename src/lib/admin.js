@@ -468,3 +468,113 @@ export function serializeImageUrls(urls) {
   if (urls.length === 1) return urls[0];
   return JSON.stringify(urls);
 }
+
+// ── GALLERY PHOTOS ──
+
+/** Recupera tutte le foto della galleria, ordinate per sort_order */
+export async function getGalleryPhotos() {
+  if (!isConfigured) {
+    // Fallback: carica da localStorage o usa le foto statiche di default
+    return loadLocal('gallery', null) || [
+      { id:1, image_url:'/images/IMG-20260415-WA0000.jpg', alt_it:'Pane artigianale appena sfornato — Panificio Da Sergio Chioggia', alt_en:'Freshly baked artisan bread — Panificio Da Sergio Chioggia', sort_order:1 },
+      { id:2, image_url:'/images/IMG-20260415-WA0001.jpg', alt_it:'Prodotti da forno tradizionali — Panificio artigianale Chioggia', alt_en:'Traditional bakery products — Artisan bakery Chioggia', sort_order:2 },
+      { id:3, image_url:'/images/IMG-20260415-WA0002.jpg', alt_it:'Dolci tipici veneziani — Panificio Da Sergio', alt_en:'Traditional Venetian sweets — Panificio Da Sergio', sort_order:3 },
+      { id:4, image_url:'/images/IMG-20260415-WA0007.jpg', alt_it:'Forno e lavorazione artigianale — Panificio Da Sergio Chioggia', alt_en:'Oven and artisan processing — Panificio Da Sergio Chioggia', sort_order:4 },
+      { id:5, image_url:'/images/IMG-20260415-WA0008.jpg', alt_it:'Biscotti e dolci artigianali — Panificio Da Sergio Chioggia', alt_en:'Artisan biscuits and pastries — Panificio Da Sergio Chioggia', sort_order:5 },
+      { id:6, image_url:'/images/IMG-20260411-WA0005.jpg', alt_it:'Specialità del Panificio Da Sergio — Chioggia', alt_en:'Specialties of Panificio Da Sergio — Chioggia', sort_order:6 },
+      { id:7, image_url:'/images/IMG-20260411-WA0006.jpg', alt_it:'Pane e prodotti tipici — Panificio Da Sergio', alt_en:'Bread and typical products — Panificio Da Sergio', sort_order:7 },
+      { id:8, image_url:'/images/IMG-20260410-WA0013.jpg', alt_it:'Dolci e biscotti artigianali — Panificio Da Sergio Chioggia', alt_en:'Artisan pastries and biscuits — Panificio Da Sergio Chioggia', sort_order:8 },
+      { id:9, image_url:'/images/IMG-20260415-WA0015.jpg', alt_it:'Interno del Panificio Da Sergio — Chioggia', alt_en:'Inside Panificio Da Sergio — Chioggia', sort_order:9 },
+    ];
+  }
+  const data = await rest('GET', 'gallery_photos?select=*&order=sort_order.asc');
+  return data || [];
+}
+
+/** Crea una nuova foto galleria */
+export async function createGalleryPhoto(data) {
+  if (!isConfigured) {
+    const photos = loadLocal('gallery', []);
+    const maxId = photos.reduce(function(max, p) { return p.id > max ? p.id : max; }, 0);
+    const maxOrder = photos.reduce(function(max, p) { return p.sort_order > max ? p.sort_order : max; }, 0);
+    const newPhoto = { ...data, id: maxId + 1, sort_order: maxOrder + 1, created_at: new Date().toISOString() };
+    photos.push(newPhoto);
+    saveLocal('gallery', photos);
+    return newPhoto;
+  }
+  const result = await rest('POST', 'gallery_photos?select=*', data);
+  if (!result || result.length === 0) throw new Error('Creazione foto fallita.');
+  return result[0];
+}
+
+/** Aggiorna una foto galleria (alt, sort_order, ecc.) */
+export async function updateGalleryPhoto(id, updates) {
+  if (!isConfigured) {
+    const photos = loadLocal('gallery', []);
+    const idx = photos.findIndex(function(p) { return p.id === id; });
+    if (idx === -1) throw new Error('Foto non trovata');
+    photos[idx] = { ...photos[idx], ...updates, updated_at: new Date().toISOString() };
+    saveLocal('gallery', photos);
+    return photos[idx];
+  }
+  const data = await rest('PATCH', 'gallery_photos?id=eq.' + Number(id) + '&select=*', {
+    ...updates,
+    updated_at: new Date().toISOString(),
+  });
+  if (!data || data.length === 0) throw new Error('Nessuna foto aggiornata: ID non trovato.');
+  return data[0];
+}
+
+/** Elimina una foto galleria */
+export async function deleteGalleryPhoto(id) {
+  if (!isConfigured) {
+    let photos = loadLocal('gallery', []);
+    photos = photos.filter(function(p) { return p.id !== id; });
+    saveLocal('gallery', photos);
+    return;
+  }
+  const data = await rest('DELETE', 'gallery_photos?id=eq.' + Number(id) + '&select=id');
+  if (!data || data.length === 0) throw new Error('Nessuna foto eliminata.');
+  return data[0];
+}
+
+/** Carica una foto per la galleria su Supabase Storage e restituisce l'URL pubblico */
+export async function uploadGalleryImage(file) {
+  if (!isConfigured) {
+    console.warn('[Admin] Modalità demo: le immagini non vengono salvate. Configura Supabase per upload reali.');
+    return URL.createObjectURL(file);
+  }
+  const ext = file.name.split('.').pop();
+  const fileName = 'gallery-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8) + '.' + ext;
+  const filePath = fileName;
+
+  const uploadResult = await supabase.storage.from('gallery-images').upload(filePath, file, {
+    cacheControl: '86400', upsert: true,
+  });
+  if (uploadResult.error) throw uploadResult.error;
+
+  const { data: urlData } = supabase.storage.from('gallery-images').getPublicUrl(filePath);
+  if (!urlData || !urlData.publicUrl) throw new Error('URL immagine non generato');
+  return urlData.publicUrl;
+}
+
+/** Riordina le foto della galleria. Accetta un array di { id, sort_order } */
+export async function reorderGalleryPhotos(orderedIds) {
+  if (!isConfigured) {
+    const photos = loadLocal('gallery', []);
+    for (let i = 0; i < orderedIds.length; i++) {
+      const idx = photos.findIndex(function(p) { return p.id === orderedIds[i]; });
+      if (idx !== -1) photos[idx].sort_order = i + 1;
+    }
+    saveLocal('gallery', photos);
+    return;
+  }
+  // Esegue PATCH in parallelo per ogni foto
+  const promises = orderedIds.map(function(id, index) {
+    return rest('PATCH', 'gallery_photos?id=eq.' + Number(id) + '&select=id', {
+      sort_order: index + 1,
+      updated_at: new Date().toISOString(),
+    });
+  });
+  await Promise.all(promises);
+}

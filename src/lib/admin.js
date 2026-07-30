@@ -503,7 +503,14 @@ export async function createGalleryPhoto(data) {
     return newPhoto;
   }
   const result = await rest('POST', 'gallery_photos?select=*', data);
-  if (!result || result.length === 0) throw new Error('Creazione foto fallita.');
+  if (!result || result.length === 0) {
+    // Fallback supabase-js (usa JWT utente autenticato)
+    if (isConfigured) {
+      const fb = await supabase.from('gallery_photos').insert(data).select('*');
+      if (!fb.error && fb.data && fb.data.length > 0) return fb.data[0];
+    }
+    throw new Error('Creazione foto fallita.');
+  }
   return result[0];
 }
 
@@ -521,7 +528,14 @@ export async function updateGalleryPhoto(id, updates) {
     ...updates,
     updated_at: new Date().toISOString(),
   });
-  if (!data || data.length === 0) throw new Error('Nessuna foto aggiornata: ID non trovato.');
+  // Fallback supabase-js (usa JWT utente autenticato)
+  if (!data || data.length === 0) {
+    if (isConfigured) {
+      const fb = await supabase.from('gallery_photos').update(updates).eq('id', Number(id)).select('*');
+      if (!fb.error && fb.data && fb.data.length > 0) return fb.data[0];
+    }
+    throw new Error('Nessuna foto aggiornata: ID non trovato o permessi insufficienti.');
+  }
   return data[0];
 }
 
@@ -534,7 +548,14 @@ export async function deleteGalleryPhoto(id) {
     return;
   }
   const data = await rest('DELETE', 'gallery_photos?id=eq.' + Number(id) + '&select=id');
-  if (!data || data.length === 0) throw new Error('Nessuna foto eliminata.');
+  // Fallback supabase-js (usa JWT utente autenticato)
+  if (!data || data.length === 0) {
+    if (isConfigured) {
+      const fb = await supabase.from('gallery_photos').delete().eq('id', Number(id)).select('id');
+      if (!fb.error && fb.data && fb.data.length > 0) return fb.data[0];
+    }
+    throw new Error('Nessuna foto eliminata: ID non trovato o permessi insufficienti.');
+  }
   return data[0];
 }
 
@@ -569,11 +590,17 @@ export async function reorderGalleryPhotos(orderedIds) {
     saveLocal('gallery', photos);
     return;
   }
-  // Esegue PATCH in parallelo per ogni foto
+  // Esegue PATCH in parallelo per ogni foto via rest()
   const promises = orderedIds.map(function(id, index) {
     return rest('PATCH', 'gallery_photos?id=eq.' + Number(id) + '&select=id', {
       sort_order: index + 1,
       updated_at: new Date().toISOString(),
+    }).catch(function() {
+      // Se rest() fallisce (RLS anon), prova con supabase-js
+      return supabase.from('gallery_photos').update({
+        sort_order: index + 1,
+        updated_at: new Date().toISOString(),
+      }).eq('id', Number(id)).select('id');
     });
   });
   await Promise.all(promises);

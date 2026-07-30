@@ -569,13 +569,21 @@ export async function uploadGalleryImage(file) {
   const fileName = 'gallery-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8) + '.' + ext;
   const filePath = fileName;
 
-  const uploadResult = await supabase.storage.from('gallery-images').upload(filePath, file, {
-    cacheControl: '86400', upsert: true,
+  // Timeout 30s per evitare upload bloccato senza feedback
+  const uploadPromise = supabase.storage.from('gallery-images').upload(filePath, file, {
+    cacheControl: '86400',
+    upsert: true,
+    contentType: file.type || 'image/jpeg',
   });
-  if (uploadResult.error) throw uploadResult.error;
+  const timeout = new Promise(function(_, reject) {
+    setTimeout(function() { reject(new Error('Timeout upload dopo 30s')); }, 30000);
+  });
+  const uploadResult = await Promise.race([uploadPromise, timeout]);
+
+  if (uploadResult.error) throw new Error('Upload storage: ' + uploadResult.error.message);
 
   const { data: urlData } = supabase.storage.from('gallery-images').getPublicUrl(filePath);
-  if (!urlData || !urlData.publicUrl) throw new Error('URL immagine non generato');
+  if (!urlData || !urlData.publicUrl) throw new Error('URL immagine non generato da storage');
   return urlData.publicUrl;
 }
 

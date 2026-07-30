@@ -873,7 +873,8 @@ function GalleryPanel() {
       await loadPhotos();
       setTimeout(function() { setSuccess(''); }, 3000);
     } catch (err) {
-      setError('Errore upload: ' + err.message);
+      console.error('[Gallery] Upload error:', err);
+      setError('Errore upload: ' + (err.message || 'sconosciuto'));
       setTimeout(function() { setError(''); }, 4000);
     } finally { setUploading(false); }
   }

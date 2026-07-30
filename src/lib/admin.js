@@ -39,19 +39,33 @@ function apiHeaders() {
  *  Lancia errore per HTTP non-ok. */
 async function rest(method, path, body) {
   if (!SUPABASE_URL) throw new Error('Supabase non configurato');
-  const res = await fetch(SUPABASE_URL + '/rest/v1/' + path, {
+  const url = SUPABASE_URL + '/rest/v1/' + path;
+  console.log(`[rest] ${method} ${url}`, body ? JSON.stringify(body).slice(0,200) : '');
+  const res = await fetch(url, {
     method,
     headers: apiHeaders(),
     body: body ? JSON.stringify(body) : void 0,
   });
   const txt = await res.text();
+  console.log(`[rest] Response status: ${res.status}, body length: ${txt.length}`);
   if (!res.ok) {
     let msg = txt;
     try { const j = JSON.parse(txt); msg = j.message || j.msg || txt; } catch {}
+    console.error(`[rest] HTTP ${res.status}: ${msg}`);
     throw new Error(msg);
   }
-  if (!txt || txt === '[]') return [];
-  try { return JSON.parse(txt); } catch { return []; }
+  if (!txt || txt === '[]') {
+    console.log('[rest] Empty response, returning []');
+    return [];
+  }
+  try {
+    const parsed = JSON.parse(txt);
+    console.log(`[rest] Parsed ${Array.isArray(parsed) ? parsed.length + ' items' : 'object'}`);
+    return parsed;
+  } catch (e) {
+    console.error('[rest] JSON parse error:', e.message, 'text:', txt.slice(0, 300));
+    return [];
+  }
 }
 
 // ── Demo data for offline mode ──
@@ -473,9 +487,11 @@ export function serializeImageUrls(urls) {
 
 /** Recupera tutte le foto della galleria, ordinate per sort_order */
 export async function getGalleryPhotos() {
+  console.log('[getGalleryPhotos] isConfigured:', isConfigured, 'SUPABASE_URL:', !!SUPABASE_URL);
   if (!isConfigured) {
-    // Fallback: carica da localStorage o usa le foto statiche di default
-    return loadLocal('gallery', null) || [
+    console.log('[getGalleryPhotos] DEMO MODE — returning localStorage or static fallback');
+    const local = loadLocal('gallery', null);
+    const result = local && local.length > 0 ? local : [
       { id:1, image_url:'/images/IMG-20260415-WA0000.jpg', alt_it:'Pane artigianale appena sfornato — Panificio Da Sergio Chioggia', alt_en:'Freshly baked artisan bread — Panificio Da Sergio Chioggia', sort_order:1 },
       { id:2, image_url:'/images/IMG-20260415-WA0001.jpg', alt_it:'Prodotti da forno tradizionali — Panificio artigianale Chioggia', alt_en:'Traditional bakery products — Artisan bakery Chioggia', sort_order:2 },
       { id:3, image_url:'/images/IMG-20260415-WA0002.jpg', alt_it:'Dolci tipici veneziani — Panificio Da Sergio', alt_en:'Traditional Venetian sweets — Panificio Da Sergio', sort_order:3 },
@@ -486,9 +502,32 @@ export async function getGalleryPhotos() {
       { id:8, image_url:'/images/IMG-20260410-WA0013.jpg', alt_it:'Dolci e biscotti artigianali — Panificio Da Sergio Chioggia', alt_en:'Artisan pastries and biscuits — Panificio Da Sergio Chioggia', sort_order:8 },
       { id:9, image_url:'/images/IMG-20260415-WA0015.jpg', alt_it:'Interno del Panificio Da Sergio — Chioggia', alt_en:'Inside Panificio Da Sergio — Chioggia', sort_order:9 },
     ];
+    console.log('[getGalleryPhotos] DEMO result:', result ? result.length + ' photos' : 'null/undefined');
+    return result;
   }
-  const data = await rest('GET', 'gallery_photos?select=*&order=sort_order.asc');
-  return data || [];
+  try {
+    console.log('[getGalleryPhotos] Calling REST API...');
+    const data = await rest('GET', 'gallery_photos?select=*&order=sort_order.asc');
+    console.log('[getGalleryPhotos] REST API result:', data ? data.length + ' photos' : 'null', data);
+    if (!data || data.length === 0) {
+      // Fallback: prova via supabase-js
+      console.log('[getGalleryPhotos] REST returned empty, trying supabase-js fallback...');
+      const { data: supabaseData, error } = await supabase
+        .from('gallery_photos')
+        .select('*')
+        .order('sort_order', { ascending: true });
+      if (error) {
+        console.error('[getGalleryPhotos] supabase-js fallback error:', error);
+        throw error;
+      }
+      console.log('[getGalleryPhotos] supabase-js fallback result:', supabaseData ? supabaseData.length + ' photos' : 'null');
+      return supabaseData || [];
+    }
+    return data;
+  } catch (e) {
+    console.error('[getGalleryPhotos] Error:', e);
+    throw e;
+  }
 }
 
 /** Crea una nuova foto galleria */

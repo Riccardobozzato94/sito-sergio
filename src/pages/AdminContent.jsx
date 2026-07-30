@@ -2,6 +2,9 @@ import { useState, useEffect } from 'react';
 import {
   getSiteContent, updateSiteContent,
   getSiteSettings, updateSiteSetting,
+  getGalleryPhotos, createGalleryPhoto,
+  updateGalleryPhoto, deleteGalleryPhoto,
+  reorderGalleryPhotos, uploadGalleryImage,
 } from '../lib/admin';
 import { CONTENT_SECTIONS } from '../lib/content';
 import {
@@ -838,8 +841,10 @@ function GalleryPanel() {
   async function loadPhotos() {
     try {
       setLoading(true);
-      const { getGalleryPhotos } = await import('../lib/admin');
+      setError(null);
+      console.log('[Gallery] Calling getGalleryPhotos...');
       const data = await getGalleryPhotos();
+      console.log('[Gallery] getGalleryPhotos result:', data);
       setPhotos(data || []);
       // Init edit alts
       const alts = {};
@@ -848,6 +853,7 @@ function GalleryPanel() {
       });
       setEditAlts(alts);
     } catch (err) {
+      console.error('[Gallery] loadPhotos error:', err);
       setError('Errore caricamento foto: ' + err.message);
       setTimeout(function() { setError(''); }, 3000);
     } finally { setLoading(false); }
@@ -859,9 +865,10 @@ function GalleryPanel() {
     setUploading(true);
     setError('');
     try {
-      const { uploadGalleryImage, createGalleryPhoto } = await import('../lib/admin');
       for (const file of files) {
+        console.log('[Gallery] Uploading file:', file.name);
         const imageUrl = await uploadGalleryImage(file);
+        console.log('[Gallery] Upload result URL:', imageUrl);
         await createGalleryPhoto({
           image_url: imageUrl,
           alt_it: file.name.replace(/\.[^.]+$/, '').replace(/[-_]/g, ' '),
@@ -885,7 +892,6 @@ function GalleryPanel() {
     if (!alts) return;
     setSavingId(id);
     try {
-      const { updateGalleryPhoto } = await import('../lib/admin');
       await updateGalleryPhoto(id, { alt_it: alts.alt_it, alt_en: alts.alt_en });
       setSuccess('Didascalia aggiornata!');
       setTimeout(function() { setSuccess(''); }, 2500);
@@ -900,7 +906,6 @@ function GalleryPanel() {
     if (!window.confirm('Eliminare questa foto dalla galleria?')) return;
     setDeletingId(id);
     try {
-      const { deleteGalleryPhoto } = await import('../lib/admin');
       await deleteGalleryPhoto(id);
       setSuccess('Foto eliminata!');
       await loadPhotos();
@@ -926,7 +931,6 @@ function GalleryPanel() {
     // Update sort_order
     const orderedIds = swapped.map(function(p) { return p.id; });
     try {
-      const { reorderGalleryPhotos } = await import('../lib/admin');
       await reorderGalleryPhotos(orderedIds);
       setSuccess('Ordine aggiornato!');
       await loadPhotos();

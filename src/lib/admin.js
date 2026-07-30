@@ -541,16 +541,21 @@ export async function createGalleryPhoto(data) {
     saveLocal('gallery', photos);
     return newPhoto;
   }
-  const result = await rest('POST', 'gallery_photos?select=*', data);
-  if (!result || result.length === 0) {
-    // Fallback supabase-js (usa JWT utente autenticato)
-    if (isConfigured) {
-      const fb = await supabase.from('gallery_photos').insert(data).select('*');
-      if (!fb.error && fb.data && fb.data.length > 0) return fb.data[0];
-    }
-    throw new Error('Creazione foto fallita.');
+  // Prova con REST API (anon key). Se fallisce (es. RLS blocca INSERT per anon),
+  // ricade su supabase-js che usa il JWT dell'utente autenticato.
+  try {
+    const result = await rest('POST', 'gallery_photos?select=*', data);
+    if (result && result.length > 0) return result[0];
+  } catch (e) {
+    console.warn('[createGalleryPhoto] REST fallita, tento supabase-js:', e.message);
   }
-  return result[0];
+  // Fallback supabase-js (usa JWT utente autenticato)
+  if (isConfigured) {
+    const fb = await supabase.from('gallery_photos').insert(data).select('*');
+    if (!fb.error && fb.data && fb.data.length > 0) return fb.data[0];
+    throw new Error('Creazione foto fallita: ' + (fb.error?.message || 'nessun dato'));
+  }
+  throw new Error('Creazione foto fallita: Supabase non configurato.');
 }
 
 /** Aggiorna una foto galleria (alt, sort_order, ecc.) */
@@ -563,19 +568,23 @@ export async function updateGalleryPhoto(id, updates) {
     saveLocal('gallery', photos);
     return photos[idx];
   }
-  const data = await rest('PATCH', 'gallery_photos?id=eq.' + Number(id) + '&select=*', {
-    ...updates,
-    updated_at: new Date().toISOString(),
-  });
-  // Fallback supabase-js (usa JWT utente autenticato)
-  if (!data || data.length === 0) {
-    if (isConfigured) {
-      const fb = await supabase.from('gallery_photos').update(updates).eq('id', Number(id)).select('*');
-      if (!fb.error && fb.data && fb.data.length > 0) return fb.data[0];
-    }
-    throw new Error('Nessuna foto aggiornata: ID non trovato o permessi insufficienti.');
+  // Prova con REST API (anon key). Se fallisce, ricade su supabase-js (JWT utente).
+  try {
+    const data = await rest('PATCH', 'gallery_photos?id=eq.' + Number(id) + '&select=*', {
+      ...updates,
+      updated_at: new Date().toISOString(),
+    });
+    if (data && data.length > 0) return data[0];
+  } catch (e) {
+    console.warn('[updateGalleryPhoto] REST fallita, tento supabase-js:', e.message);
   }
-  return data[0];
+  // Fallback supabase-js (usa JWT utente autenticato)
+  if (isConfigured) {
+    const fb = await supabase.from('gallery_photos').update(updates).eq('id', Number(id)).select('*');
+    if (!fb.error && fb.data && fb.data.length > 0) return fb.data[0];
+    throw new Error('Nessuna foto aggiornata: ' + (fb.error?.message || 'ID non trovato o permessi insufficienti.'));
+  }
+  throw new Error('Nessuna foto aggiornata: Supabase non configurato.');
 }
 
 /** Elimina una foto galleria */
@@ -586,16 +595,20 @@ export async function deleteGalleryPhoto(id) {
     saveLocal('gallery', photos);
     return;
   }
-  const data = await rest('DELETE', 'gallery_photos?id=eq.' + Number(id) + '&select=id');
-  // Fallback supabase-js (usa JWT utente autenticato)
-  if (!data || data.length === 0) {
-    if (isConfigured) {
-      const fb = await supabase.from('gallery_photos').delete().eq('id', Number(id)).select('id');
-      if (!fb.error && fb.data && fb.data.length > 0) return fb.data[0];
-    }
-    throw new Error('Nessuna foto eliminata: ID non trovato o permessi insufficienti.');
+  // Prova con REST API (anon key). Se fallisce, ricade su supabase-js (JWT utente).
+  try {
+    const data = await rest('DELETE', 'gallery_photos?id=eq.' + Number(id) + '&select=id');
+    if (data && data.length > 0) return data[0];
+  } catch (e) {
+    console.warn('[deleteGalleryPhoto] REST fallita, tento supabase-js:', e.message);
   }
-  return data[0];
+  // Fallback supabase-js (usa JWT utente autenticato)
+  if (isConfigured) {
+    const fb = await supabase.from('gallery_photos').delete().eq('id', Number(id)).select('id');
+    if (!fb.error && fb.data && fb.data.length > 0) return fb.data[0];
+    throw new Error('Nessuna foto eliminata: ' + (fb.error?.message || 'ID non trovato o permessi insufficienti.'));
+  }
+  throw new Error('Nessuna foto eliminata: Supabase non configurato.');
 }
 
 /** Carica una foto per la galleria su Supabase Storage e restituisce l'URL pubblico */
@@ -637,13 +650,15 @@ export async function reorderGalleryPhotos(orderedIds) {
     saveLocal('gallery', photos);
     return;
   }
-  // Esegue PATCH in parallelo per ogni foto via rest()
+  // Esegue PATCH in parallelo per ogni foto
   const promises = orderedIds.map(function(id, index) {
+    // Prova REST API (anon key). Se fallisce, ricade su supabase-js (JWT utente).
     return rest('PATCH', 'gallery_photos?id=eq.' + Number(id) + '&select=id', {
       sort_order: index + 1,
       updated_at: new Date().toISOString(),
-    }).catch(function() {
-      // Se rest() fallisce (RLS anon), prova con supabase-js
+    }).catch(function(e) {
+      console.warn('[reorderGalleryPhotos] REST fallita per foto ' + id + ', tento supabase-js:', e.message);
+      // Se rest() fallisce (ad es. RLS anon), prova con supabase-js
       return supabase.from('gallery_photos').update({
         sort_order: index + 1,
         updated_at: new Date().toISOString(),

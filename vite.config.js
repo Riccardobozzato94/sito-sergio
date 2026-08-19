@@ -35,11 +35,20 @@ export default defineConfig({
   build: {
     // Warn (not fail) when a chunk exceeds 600 kB — helps monitor bundle size
     chunkSizeWarningLimit: 600,
+    // Minify + emit sourcemaps-free production build (esbuild is fast & safe)
+    minify: 'esbuild',
+    target: 'es2020',
     rollupOptions: {
       output: {
         // Split vendor code into a separate chunk so it can be cached
-        manualChunks: {
-          vendor: ['react', 'react-dom'],
+        manualChunks(id) {
+          // NOTE: @supabase/supabase-js is imported by the PUBLIC site too
+          // (Products.jsx + content.js via lib/supabase/client), so it MUST
+          // stay in the main vendor chunk — never move it to an admin-only chunk.
+          if (id.includes('node_modules')) {
+            if (id.includes('react-router')) return 'router';
+            return 'vendor';
+          }
         },
       },
     },

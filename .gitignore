@@ -24,3 +24,8 @@ Thumbs.db
 
 # Supabase generated types (auto-regenerated)
 src/lib/supabase/database.types.ts
+
+# SECURITY: client credentials - NEVER commit
+sergio.txt
+# raw photo assets (keep local)
+_raw_assets_panificio/

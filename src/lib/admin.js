@@ -450,14 +450,21 @@ export async function uploadProductImage(file, productId) {
   const fileName = 'product-' + productId + '-' + Date.now() + '.' + ext;
   const filePath = 'products/' + fileName;
 
-  const uploadResult = await supabase.storage.from('product-images').upload(filePath, file, {
-    cacheControl: '86400', upsert: true,
-  });
-  if (uploadResult.error) throw uploadResult.error;
+  const { error: uploadError } = await supabase.storage
+    .from('product-images')
+    .upload(filePath, file, {
+      cacheControl: '86400',
+      upsert: true,
+    });
+  if (uploadError) throw uploadError;
 
-  const { data: urlData } = supabase.storage.from('product-images').getPublicUrl(filePath);
-  if (!urlData || !urlData.publicUrl) throw new Error('URL immagine non generato');
-  return urlData.publicUrl;
+  // Bucket privato: restituiamo un signed URL (valido 1 anno)
+  const { data: signedData, error: signedError } = await supabase.storage
+    .from('product-images')
+    .createSignedUrl(filePath, 60 * 60 * 24 * 365);
+  if (signedError) throw signedError;
+
+  return signedData.signedUrl;
 }
 
 /**

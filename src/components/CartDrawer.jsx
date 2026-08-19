@@ -1,10 +1,11 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { X, Minus, Plus, MessageCircle, AlertCircle, Truck, Store, Calendar, CreditCard } from 'lucide-react';
 import { BUSINESS } from '../lib/config';
 import { getOrderHistory, saveOrderHistory } from '../lib/order-history';
 import { useLang } from '../App';
 import { imageUrl } from '../lib/images';
+import useFocusTrap from '../lib/useFocusTrap';
 
 /** RFC-compliant email: requires at least 2-char TLD */
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
@@ -26,6 +27,15 @@ export default function CartDrawer({ isOpen, onClose, items, onUpdateQuantity })
   const navigate = useNavigate();
   const [isSending, setIsSending] = useState(false);
   const lastSentAt = useRef(0);
+  const drawerFocusTrapRef = useFocusTrap(isOpen);
+
+  // Lock background scroll while the drawer is open
+  useEffect(() => {
+    if (!isOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = prev; };
+  }, [isOpen]);
 
   const subtotal = items.reduce((sum, item) => {
     const price = item.price ?? 0;
@@ -105,6 +115,7 @@ export default function CartDrawer({ isOpen, onClose, items, onUpdateQuantity })
 
       {/* ═══ Drawer ═══ */}
       <div
+        ref={drawerFocusTrapRef}
         className="fixed top-0 right-0 h-full w-full sm:w-[480px] bg-[#1a1410]/95 backdrop-blur-2xl z-50 shadow-2xl shadow-black/60 border-l border-white/[0.04] animate-slide-in flex flex-col"
         role="dialog"
         aria-modal="true"

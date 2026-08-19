@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" fill="none">
+  <rect width="400" height="400" fill="#2c241e"/>
+  <ellipse cx="200" cy="200" rx="150" ry="140" fill="rgba(212,165,116,0.10)"/>
+  <g transform="translate(200,200)" stroke="#d4a574" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <path d="M-90,30 C-90,-40 -40,-75 0,-78 C40,-75 90,-40 90,30Z" fill="rgba(212,165,116,0.14)"/>
+    <line x1="-45" y1="-20" x2="-30" y2="-45"/>
+    <line x1="-15" y1="-25" x2="0" y2="-55"/>
+    <line x1="15" y1="-25" x2="30" y2="-55"/>
+    <line x1="45" y1="-20" x2="60" y2="-45"/>
+  </g>
+  <text x="200" y="330" text-anchor="middle" font-family="Georgia, serif" font-size="18" fill="rgba(212,165,116,0.55)" letter-spacing="0.12em">PANE FRESCO</text>
+</svg>
